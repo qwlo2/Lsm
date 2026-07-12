@@ -1,0 +1,729 @@
+[2026-04-22 14:24:08.991] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-22 14:24:11.481] [Tiny-Lsm] [info] Configuration saved successfully to config.toml
+[2026-04-22 14:24:25.876] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-22 14:24:25.878] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-22 14:25:34.423] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-22 14:25:34.426] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 20:50:18.190] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 20:50:18.193] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 20:55:07.387] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 20:55:07.389] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 20:55:31.387] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 20:55:31.389] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 20:55:55.297] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 20:55:55.299] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 20:56:12.321] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 20:56:12.323] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 20:56:27.161] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 20:56:27.163] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 21:37:51.501] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 21:37:51.503] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-04-26 22:27:52.918] [Tiny-Lsm] [info] spdlog initialized
+[2026-04-26 22:27:52.921] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-02 18:06:24.777] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-02 18:06:24.782] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 15:08:13.228] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 15:08:13.231] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 15:11:25.809] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 15:11:25.811] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 15:11:44.066] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 15:11:44.068] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 15:24:37.115] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 15:24:37.118] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 15:32:27.211] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 15:32:27.213] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 16:21:39.741] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 16:21:39.743] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 16:36:41.336] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 16:36:41.338] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 16:55:38.058] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 16:55:38.061] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 17:12:48.286] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 17:12:48.288] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 17:21:46.939] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 17:21:46.942] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 17:29:57.999] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 17:29:58.001] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 17:32:41.966] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 17:32:41.968] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 17:41:28.438] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 17:41:28.441] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-05 17:44:14.856] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-05 17:44:14.859] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-14 00:04:25.482] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-14 00:04:25.484] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:04:25.487] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-14 00:04:25.487] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-14 00:04:25.487] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-14 00:04:25.487] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 3 entries
+[2026-05-14 00:04:25.487] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-14 00:04:25.487] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:04:25.919] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-14 00:04:25.919] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-14 00:04:25.952] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 109999 entries
+[2026-05-14 00:04:26.178] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-14 00:04:26.223] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:08:13.036] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:08:13.041] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-14 00:08:13.041] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-14 00:08:13.041] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 1000 entries
+[2026-05-14 00:08:13.043] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-14 00:08:25.257] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:08:25.257] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-14 00:08:25.257] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-14 00:08:25.257] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 100 entries
+[2026-05-14 00:08:25.257] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 4 entries
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 51 entries
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 49 entries
+[2026-05-14 00:08:25.258] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-14 00:08:25.259] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-14 00:08:25.259] [Tiny-Lsm] [debug] TranManager--new_tranc(): Creatin[2026-05-15 19:34:41.298] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-15 19:34:41.300] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:34:41.303] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-15 19:34:41.303] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-15 19:34:41.303] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-15 19:34:41.303] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 3 entries
+[2026-05-15 19:34:41.303] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-15 19:34:41.303] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:34:41.753] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-15 19:34:41.753] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-15 19:34:41.788] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 109999 entries
+[2026-05-15 19:34:42.025] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-15 19:34:42.073] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:37:09.441] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:37:09.446] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-15 19:37:09.446] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-15 19:37:09.447] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 1000 entries
+[2026-05-15 19:37:09.449] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-15 19:37:09.449] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:37:09.450] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-15 19:37:09.450] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-15 19:37:09.450] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 100 entries
+[2026-05-15 19:37:09.450] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-15 19:37:09.450] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 4 entries
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 51 entries
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-15 19:37:09.451] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 49 entries
+[2026-05-15 19:37:09.452] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-15 19:37:09.452] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-15 19:37:09.452] [Tiny-Lsm] [debug] TranManager--new_tranc(): Creatin[2026-05-29 17:36:28.249] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 3 entries
+[2026-05-29 17:36:28.253] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:36:29.254] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:36:29.254] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:36:29.254] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:36:29.254] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:36:29.254] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:36:29.723] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:36:29.723] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:36:29.758] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 109999 entries
+[2026-05-29 17:36:30.001] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:36:30.257] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:36:30.265] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:36:30.265] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:36:30.265] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:36:30.265] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:11.435] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:11.435] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:11.435] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:11.435] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:11.436] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:11.443] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:11.443] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:11.443] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 1000 entries
+[2026-05-29 17:37:11.445] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:12.439] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:12.440] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:12.440] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:12.440] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:12.441] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:12.441] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:12.441] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:12.442] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 100 entries
+[2026-05-29 17:37:12.443] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:13.442] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:13.442] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:13.442] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:13.442] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:13.443] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:13.443] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:13.443] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:13.443] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 4 entries
+[2026-05-29 17:37:13.443] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:14.444] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 51 entries
+[2026-05-29 17:37:14.445] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:14.446] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-29 17:37:14.446] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:14.446] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 49 entries
+[2026-05-29 17:37:14.446] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-29 17:37:15.446] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:15.446] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:15.446] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:15.446] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [debug] TranManager--new_tranc(): Creating new transaction with isolation level=2
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [debug] TranManager--new_tranc(): Created transaction ID=1 with isolation level=2
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [info] LSM--lsm_iters_monotony_predicate: Starting query for tranc_id=1
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [info] TranContext--commit(): Transaction ID=1 committed successfully
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [debug] TranManager--new_tranc(): Creating new transaction with isolation level=2
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [debug] TranManager--new_tranc(): Created transaction ID=5 with isolation level=2
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [info] LSM--lsm_iters_monotony_predicate: Starting query for tranc_id=5
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [warning] TranContext--commit(): Conflict detected on key=key2, aborting transaction ID=5
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 4 entries
+[2026-05-29 17:37:15.447] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:16.448] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:16.448] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:16.448] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:16.448] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 20 entries
+[2026-05-29 17:37:16.449] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [debug] TranManager--new_tranc(): Creating new transaction with isolation level=2
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [debug] TranManager--new_tranc(): Created transaction ID=2 with isolation level=2
+[2026-05-29 17:37:16.452] [Tiny-Lsm] [info] LSM--lsm_iters_monotony_predicate: Starting query for tranc_id=2
+[2026-05-29 17:37:16.453] [Tiny-Lsm] [info] TranContext--commit(): Transaction ID=2 committed successfully
+[2026-05-29 17:37:16.453] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:16.453] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:16.453] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 1 entries
+[2026-05-29 17:37:16.453] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:17.453] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:17.453] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:17.453] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:17.453] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:17.453] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:18.456] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 17:37:18.456] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 17:37:18.456] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 17:37:18.456] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 17:37:18.458] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 17:37:27.405] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 17:37:27.405] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:27.467] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-29 17:37:27.826] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 17:37:27.898] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-29 17:37:27.898] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:27.963] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 17:37:28.315] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-29 17:37:28.381] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-29 17:37:28.381] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:28.448] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 17:37:28.795] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-29 17:37:28.864] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-29 17:37:28.864] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:28.920] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 17:37:29.272] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-29 17:37:35.420] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-29 17:37:35.420] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:35.469] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 17:37:35.829] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-29 17:37:35.900] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-29 17:37:35.900] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:35.960] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 17:37:36.326] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-29 17:37:36.397] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-29 17:37:36.397] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:36.468] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 17:37:36.820] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-29 17:37:36.890] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-29 17:37:36.890] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:36.948] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-29 17:37:37.308] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at 'test_lsm_data/sst_00000000000000000000000000000010.0'
+[2026-05-29 17:37:48.147] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST14
+[2026-05-29 17:37:48.147] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:48.193] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-29 17:37:48.538] [Tiny-Lsm] [info] MemTable--flush_last(): SST14 built successfully at 'test_lsm_data/sst_00000000000000000000000000000014.0'
+[2026-05-29 17:37:48.599] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST15
+[2026-05-29 17:37:48.599] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:48.655] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-29 17:37:49.002] [Tiny-Lsm] [info] MemTable--flush_last(): SST15 built successfully at 'test_lsm_data/sst_00000000000000000000000000000015.0'
+[2026-05-29 17:37:49.064] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST16
+[2026-05-29 17:37:49.064] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 17:37:49.120] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145086 entries
+[2026-05-29 17:37:49.465] [Tiny-Lsm] [info] MemTable--flush_last(): SST16 built successfully at 'test_lsm_data/sst_00000000000000000000000000000016.0'
+[2026-05-29 17:37:49.527] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST17
+[2026-05-29 17:37:49.527] [Tiny-Lsm] [debug[2026-05-29 18:02:17.439] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [debug] TranManager--new_tranc(): Creating new transaction with isolation level=2
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [debug] TranManager--new_tranc(): Created transaction ID=2 with isolation level=2
+[2026-05-29 18:02:17.442] [Tiny-Lsm] [info] LSM--lsm_iters_monotony_predicate: Starting query for tranc_id=2
+[2026-05-29 18:02:27.443] [Tiny-Lsm] [info] TranContext--commit(): Transaction ID=2 committed successfully
+[2026-05-29 18:02:27.443] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 18:02:27.443] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:02:27.443] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 1 entries
+[2026-05-29 18:02:27.443] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 18:02:28.443] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 18:02:28.443] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 18:02:28.443] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 18:02:28.443] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 18:02:28.443] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 18:02:58.917] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [debug] TranManager--new_tranc(): Creating new transaction with isolation level=2
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [debug] TranManager--new_tranc(): Created transaction ID=2 with isolation level=2
+[2026-05-29 18:02:58.919] [Tiny-Lsm] [info] LSM--lsm_iters_monotony_predicate: Starting query for tranc_id=2
+[2026-05-29 18:02:58.920] [Tiny-Lsm] [info] TranContext--commit(): Transaction ID=2 committed successfully
+[2026-05-29 18:02:58.920] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 18:02:58.920] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:02:58.920] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 1 entries
+[2026-05-29 18:02:58.920] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 18:02:59.920] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 18:02:59.920] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 18:02:59.920] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 18:02:59.920] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 18:02:59.921] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 18:27:45.993] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 18:28:11.664] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 18:28:49.603] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 18:28:49.610] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-29 18:28:49.610] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 18:28:49.610] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 18:28:49.610] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 18:28:49.610] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 18:28:49.611] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 18:28:50.070] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 18:28:50.070] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:28:50.107] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 110001 entries
+[2026-05-29 18:28:50.340] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 18:28:50.624] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 18:28:50.629] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 18:28:50.629] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 18:28:50.629] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 18:28:50.630] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 18:34:31.518] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 18:34:31.521] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-29 18:34:31.521] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 18:34:31.521] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 18:34:31.521] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 18:34:31.521] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 18:34:31.521] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 18:34:40.117] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 18:34:40.117] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:40.176] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-29 18:34:40.512] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 18:34:40.582] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-29 18:34:40.582] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:40.640] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 18:34:40.974] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-29 18:34:41.042] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-29 18:34:41.042] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:41.108] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 18:34:41.440] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-29 18:34:41.505] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-29 18:34:41.505] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:41.559] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 18:34:41.897] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-29 18:34:47.752] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-29 18:34:47.752] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:47.800] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 18:34:48.135] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-29 18:34:48.200] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-29 18:34:48.200] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:48.256] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 18:34:48.592] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-29 18:34:48.659] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-29 18:34:48.659] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:48.724] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 18:34:49.056] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-29 18:34:49.124] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-29 18:34:49.124] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 18:34:49.176] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-29 18:34:49.503] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at [2026-05-29 19:01:24.323] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 19:01:24.326] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-29 19:01:24.326] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 19:01:24.326] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 19:01:24.326] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 19:01:24.326] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 19:01:24.327] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 19:01:32.890] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 19:01:32.890] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:32.949] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-29 19:01:33.286] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 19:01:33.354] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-29 19:01:33.354] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:33.413] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:01:33.744] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-29 19:01:33.809] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-29 19:01:33.809] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:33.873] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:01:34.201] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-29 19:01:34.267] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-29 19:01:34.267] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:34.322] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:01:34.655] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-29 19:01:40.431] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-29 19:01:40.431] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:40.476] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:01:40.809] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-29 19:01:40.874] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-29 19:01:40.874] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:40.929] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:01:41.261] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-29 19:01:41.326] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-29 19:01:41.326] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:41.389] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:01:41.719] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-29 19:01:41.784] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-29 19:01:41.784] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:01:41.836] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-29 19:01:42.155] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at [2026-05-29 19:04:52.961] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-29 19:04:52.967] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-29 19:04:52.967] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 19:04:52.967] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 19:04:52.967] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 19:04:52.967] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 19:04:52.967] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-29 19:05:01.427] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-29 19:05:01.427] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:01.488] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-29 19:05:01.833] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-29 19:05:01.906] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-29 19:05:01.906] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:01.966] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:05:02.301] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-29 19:05:02.366] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-29 19:05:02.366] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:02.430] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:05:02.763] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-29 19:05:02.830] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-29 19:05:02.830] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:02.885] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:05:03.222] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-29 19:05:09.134] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-29 19:05:09.134] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:09.181] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:05:09.517] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-29 19:05:09.581] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-29 19:05:09.581] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:09.635] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:05:09.969] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-29 19:05:10.038] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-29 19:05:10.038] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:10.102] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-29 19:05:10.440] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-29 19:05:10.505] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-29 19:05:10.505] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:10.559] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-29 19:05:10.882] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at 'test_lsm_data/sst_00000000000000000000000000000010.0'
+[2026-05-29 19:05:21.238] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST14
+[2026-05-29 19:05:21.238] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:21.283] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-29 19:05:21.614] [Tiny-Lsm] [info] MemTable--flush_last(): SST14 built successfully at 'test_lsm_data/sst_00000000000000000000000000000014.0'
+[2026-05-29 19:05:21.677] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST15
+[2026-05-29 19:05:21.677] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:21.728] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-29 19:05:22.056] [Tiny-Lsm] [info] MemTable--flush_last(): SST15 built successfully at 'test_lsm_data/sst_00000000000000000000000000000015.0'
+[2026-05-29 19:05:22.120] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST16
+[2026-05-29 19:05:22.120] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:22.173] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145086 entries
+[2026-05-29 19:05:22.503] [Tiny-Lsm] [info] MemTable--flush_last(): SST16 built successfully at 'test_lsm_data/sst_00000000000000000000000000000016.0'
+[2026-05-29 19:05:22.567] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST17
+[2026-05-29 19:05:22.567] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:22.622] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-29 19:05:22.950] [Tiny-Lsm] [info] MemTable--flush_last(): SST17 built successfully at 'test_lsm_data/sst_00000000000000000000000000000017.0'
+[2026-05-29 19:05:36.092] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST22
+[2026-05-29 19:05:36.092] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:36.136] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-29 19:05:36.458] [Tiny-Lsm] [info] MemTable--flush_last(): SST22 built successfully at 'test_lsm_data/sst_00000000000000000000000000000022.0'
+[2026-05-29 19:05:36.519] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST23
+[2026-05-29 19:05:36.519] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:36.572] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-29 19:05:36.893] [Tiny-Lsm] [info] MemTable--flush_last(): SST23 built successfully at 'test_lsm_data/sst_00000000000000000000000000000023.0'
+[2026-05-29 19:05:36.954] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST24
+[2026-05-29 19:05:36.955] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-29 19:05:36.987] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 88076 entries
+[2026-05-29 19:05:37.191] [Tiny-Lsm] [info] MemTable--flush_last(): SST24 built successfully at 'test_lsm_data/sst_00000000000000000000000000000024.0'
+[2026-05-29 19:05:37.997] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-29 19:05:38.004] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-29 19:05:38.004] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-29 19:05:38.004] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-29 19:05:38.004] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 15:45:40.726] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-30 15:45:40.734] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-30 15:45:40.734] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 15:45:40.734] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 15:45:40.734] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 15:45:40.734] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 15:45:40.735] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 15:45:49.572] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-30 15:45:49.572] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:49.642] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-30 15:45:49.992] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-30 15:45:50.067] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-30 15:45:50.067] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:50.129] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 15:45:50.483] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-30 15:45:50.553] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-30 15:45:50.553] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:50.622] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 15:45:50.967] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-30 15:45:51.037] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-30 15:45:51.037] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:51.097] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 15:45:51.443] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-30 15:45:57.514] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-30 15:45:57.514] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:57.560] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 15:45:57.904] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-30 15:45:57.971] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-30 15:45:57.971] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:58.030] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 15:45:58.381] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-30 15:45:58.454] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-30 15:45:58.454] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:58.522] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 15:45:58.872] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-30 15:45:58.940] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-30 15:45:58.940] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:45:58.995] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-30 15:45:59.331] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at 'test_lsm_data/sst_00000000000000000000000000000010.0'
+[2026-05-30 15:46:09.908] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST14
+[2026-05-30 15:46:09.908] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:46:09.956] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 15:46:10.294] [Tiny-Lsm] [info] MemTable--flush_last(): SST14 built successfully at 'test_lsm_data/sst_00000000000000000000000000000014.0'
+[2026-05-30 15:46:10.358] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST15
+[2026-05-30 15:46:10.358] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:46:10.413] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 15:46:10.754] [Tiny-Lsm] [info] MemTable--flush_last(): SST15 built successfully at 'test_lsm_data/sst_00000000000000000000000000000015.0'
+[2026-05-30 15:46:10.819] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST16
+[2026-05-30 15:46:10.819] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:46:10.877] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145086 entries
+[2026-05-30 15:46:11.212] [Tiny-Lsm] [info] MemTable--flush_last(): SST16 built successfully at 'test_lsm_data/sst_00000000000000000000000000000016.0'
+[2026-05-30 15:46:11.276] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST17
+[2026-05-30 15:46:11.276] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:46:11.329] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 15:46:11.669] [Tiny-Lsm] [info] MemTable--flush_last(): SST17 built successfully at 'test_lsm_data/sst_00000000000000000000000000000017.0'
+[2026-05-30 15:46:25.106] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST22
+[2026-05-30 15:46:25.106] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:46:25.155] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 15:46:25.491] [Tiny-Lsm] [info] MemTable--flush_last(): SST22 built successfully at 'test_lsm_data/sst_00000000000000000000000000000022.0'
+[2026-05-30 15:46:25.555] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST23
+[2026-05-30 15:46:25.555] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:46:25.611] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 15:46:25.946] [Tiny-Lsm] [info] MemTable--flush_last(): SST23 built successfully at 'test_lsm_data/sst_00000000000000000000000000000023.0'
+[2026-05-30 15:46:26.010] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST24
+[2026-05-30 15:46:26.011] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 15:46:26.045] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 88076 entries
+[2026-05-30 15:46:26.248] [Tiny-Lsm] [info] MemTable--flush_last(): SST24 built successfully at 'test_lsm_data/sst_00000000000000000000000000000024.0'
+[2026-05-30 15:46:26.764] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 15:46:26.772] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 15:46:26.772] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 15:46:26.772] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 15:46:26.773] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 17:01:49.156] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-30 17:01:49.165] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-30 17:01:49.165] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 17:01:49.165] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 17:01:49.165] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 17:01:49.165] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 17:01:49.166] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 17:01:58.043] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-30 17:01:58.043] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:01:58.103] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-30 17:01:58.443] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-30 17:01:58.518] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-30 17:01:58.518] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:01:58.577] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:01:58.934] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-30 17:01:59.004] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-30 17:01:59.004] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:01:59.069] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:01:59.397] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-30 17:01:59.469] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-30 17:01:59.469] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:01:59.528] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:01:59.861] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-30 17:02:06.104] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-30 17:02:06.104] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:06.154] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:02:06.500] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-30 17:02:06.583] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-30 17:02:06.583] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:06.644] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:02:06.988] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-30 17:02:07.062] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-30 17:02:07.062] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:07.130] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:02:07.459] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-30 17:02:07.532] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-30 17:02:07.532] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:07.591] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-30 17:02:07.927] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at 'test_lsm_data/sst_00000000000000000000000000000010.0'
+[2026-05-30 17:02:18.401] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST14
+[2026-05-30 17:02:18.401] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:18.449] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 17:02:18.776] [Tiny-Lsm] [info] MemTable--flush_last(): SST14 built successfully at 'test_lsm_data/sst_00000000000000000000000000000014.0'
+[2026-05-30 17:02:18.840] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST15
+[2026-05-30 17:02:18.840] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:18.891] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 17:02:19.211] [Tiny-Lsm] [info] MemTable--flush_last(): SST15 built successfully at 'test_lsm_data/sst_00000000000000000000000000000015.0'
+[2026-05-30 17:02:19.281] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST16
+[2026-05-30 17:02:19.281] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:19.332] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145086 entries
+[2026-05-30 17:02:19.667] [Tiny-Lsm] [info] MemTable--flush_last(): SST16 built successfully at 'test_lsm_data/sst_00000000000000000000000000000016.0'
+[2026-05-30 17:02:19.736] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST17
+[2026-05-30 17:02:19.736] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:19.785] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 17:02:20.101] [Tiny-Lsm] [info] MemTable--flush_last(): SST17 built successfully at 'test_lsm_data/sst_00000000000000000000000000000017.0'
+[2026-05-30 17:02:33.585] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST22
+[2026-05-30 17:02:33.585] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:33.635] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 17:02:33.963] [Tiny-Lsm] [info] MemTable--flush_last(): SST22 built successfully at 'test_lsm_data/sst_00000000000000000000000000000022.0'
+[2026-05-30 17:02:34.027] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST23
+[2026-05-30 17:02:34.027] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:34.081] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145087 entries
+[2026-05-30 17:02:34.418] [Tiny-Lsm] [info] MemTable--flush_last(): SST23 built successfully at 'test_lsm_data/sst_00000000000000000000000000000023.0'
+[2026-05-30 17:02:34.482] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST24
+[2026-05-30 17:02:34.482] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:02:34.512] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 88076 entries
+[2026-05-30 17:02:34.712] [Tiny-Lsm] [info] MemTable--flush_last(): SST24 built successfully at 'test_lsm_data/sst_00000000000000000000000000000024.0'
+[2026-05-30 17:02:35.220] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 17:02:35.238] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 17:02:35.238] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 17:02:35.239] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 17:02:35.239] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 17:10:16.603] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-30 17:10:16.605] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-30 17:10:16.605] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 17:10:16.605] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 17:10:16.605] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 17:10:16.605] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 17:10:16.605] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 17:10:18.346] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-30 17:10:18.346] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:18.364] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-30 17:10:18.398] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-30 17:10:18.432] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-30 17:10:18.432] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:18.452] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:10:18.486] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-30 17:10:18.515] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-30 17:10:18.515] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:18.538] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:10:18.571] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-30 17:10:18.601] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-30 17:10:18.601] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:18.615] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:10:18.650] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-30 17:10:19.373] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-30 17:10:19.373] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:19.381] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:10:19.422] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-30 17:10:19.452] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-30 17:10:19.452] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:19.466] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:10:19.500] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-30 17:10:19.537] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-30 17:10:19.537] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:19.564] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:10:19.596] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-30 17:10:19.623] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-30 17:10:19.623] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:19.639] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-30 17:10:19.670] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at 'test_lsm_data/sst_00000000000000000000000000000010.0'
+[2026-05-30 17:10:20.923] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST14
+[2026-05-30 17:10:20.923] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:10:20.927] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 78597 entries
+[2026-05-30 17:10:20.946] [Tiny-Lsm] [info] MemTable--flush_last(): SST14 built successfully at 'test_lsm_data/sst_00000000000000000000000000000014.0'
+[2026-05-30 17:10:21.612] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 17:10:21.623] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 17:10:21.623] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 17:10:21.623] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 17:10:21.625] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 17:14:02.952] [Tiny-Lsm] [info] spdlog initialized
+[2026-05-30 17:14:02.952] [Tiny-Lsm] [info] Configuration loaded successfully from config.toml
+[2026-05-30 17:14:02.952] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 17:14:02.952] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 17:14:02.953] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 17:14:02.953] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 17:14:02.953] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized
+[2026-05-30 17:14:04.625] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST1
+[2026-05-30 17:14:04.625] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:04.643] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 163987 entries
+[2026-05-30 17:14:04.685] [Tiny-Lsm] [info] MemTable--flush_last(): SST1 built successfully at 'test_lsm_data/sst_00000000000000000000000000000001.0'
+[2026-05-30 17:14:04.718] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST2
+[2026-05-30 17:14:04.718] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:04.736] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:14:04.771] [Tiny-Lsm] [info] MemTable--flush_last(): SST2 built successfully at 'test_lsm_data/sst_00000000000000000000000000000002.0'
+[2026-05-30 17:14:04.801] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST3
+[2026-05-30 17:14:04.801] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:04.821] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:14:04.855] [Tiny-Lsm] [info] MemTable--flush_last(): SST3 built successfully at 'test_lsm_data/sst_00000000000000000000000000000003.0'
+[2026-05-30 17:14:04.887] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST4
+[2026-05-30 17:14:04.887] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:04.905] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:14:04.940] [Tiny-Lsm] [info] MemTable--flush_last(): SST4 built successfully at 'test_lsm_data/sst_00000000000000000000000000000004.0'
+[2026-05-30 17:14:05.610] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST7
+[2026-05-30 17:14:05.610] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:05.618] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:14:05.659] [Tiny-Lsm] [info] MemTable--flush_last(): SST7 built successfully at 'test_lsm_data/sst_00000000000000000000000000000007.0'
+[2026-05-30 17:14:05.689] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST8
+[2026-05-30 17:14:05.689] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:05.702] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:14:05.738] [Tiny-Lsm] [info] MemTable--flush_last(): SST8 built successfully at 'test_lsm_data/sst_00000000000000000000000000000008.0'
+[2026-05-30 17:14:05.765] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST9
+[2026-05-30 17:14:05.765] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:05.789] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 155345 entries
+[2026-05-30 17:14:05.821] [Tiny-Lsm] [info] MemTable--flush_last(): SST9 built successfully at 'test_lsm_data/sst_00000000000000000000000000000009.0'
+[2026-05-30 17:14:05.847] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST10
+[2026-05-30 17:14:05.847] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:05.862] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 145347 entries
+[2026-05-30 17:14:05.893] [Tiny-Lsm] [info] MemTable--flush_last(): SST10 built successfully at 'test_lsm_data/sst_00000000000000000000000000000010.0'
+[2026-05-30 17:14:07.031] [Tiny-Lsm] [debug] MemTable--flush_last(): Starting to flush memtable to SST14
+[2026-05-30 17:14:07.031] [Tiny-Lsm] [debug] SkipList--flush(): Starting to flush skiplist data
+[2026-05-30 17:14:07.036] [Tiny-Lsm] [debug] SkipList--flush(): Flushed 78597 entries
+[2026-05-30 17:14:07.052] [Tiny-Lsm] [info] MemTable--flush_last(): SST14 built successfully at 'test_lsm_data/sst_00000000000000000000000000000014.0'
+[2026-05-30 17:14:07.960] [Tiny-Lsm] [info] VLog::open: opened vlog at test_lsm_data/vlog.data, size=0
+[2026-05-30 17:14:07.968] [Tiny-Lsm] [info] TranManager--check_recover(): Starting recovery from WAL
+[2026-05-30 17:14:07.968] [Tiny-Lsm] [info] TranManager--check_recover(): Recovered 0 transactions
+[2026-05-30 17:14:07.968] [Tiny-Lsm] [info] TranManager--init_new_wal(): Cleaning up old WAL files
+[2026-05-30 17:14:07.969] [Tiny-Lsm] [info] TranManager--init_new_wal(): New WAL initialized

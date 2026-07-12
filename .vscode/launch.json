@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug test_lsm",
+            "type": "cppdbg",
+            "request": "launch",
+              "program": "${workspaceFolder}/tiny-lsm/build/linux/x86_64/release/test_lsm",
+            "args": [
+                 "--gtest_filter=LSMTest.BigPersistence"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+           // "console": "integratedTerminal",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

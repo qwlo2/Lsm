@@ -1,0 +1,56 @@
+% !TEX TS-program = xelatex
+% !TEX encoding = UTF-8 Unicode
+% !Mode:: "TeX:UTF-8"
+
+\documentclass{resume}
+\usepackage{zh_CN-Adobefonts_external} % Simplified Chinese Support using external fonts (./fonts/zh_CN-Adobe/)
+%\usepackage{zh_CN-Adobefonts_internal} % Simplified Chinese Support using system fonts
+\usepackage{linespacing_fix} % disable extra space before next section
+\usepackage{cite}
+
+\begin{document}
+\pagenumbering{gobble} % suppress displaying page number
+
+\begin{tabular}{@{}p{5.0cm}l@{}}
+\textbf{姓名：邱俊豪} & \textbf{性别：男} \\
+\textbf{电话：17311906613} & \textbf{邮箱：17311906613@163.com}
+\end{tabular}\par
+\vspace{0.7ex}
+
+\section{教育背景}
+\datedsubsection{\textbf{海南大学}}{2024-09 至 2028-06}
+\textbf{计算机科学与技术 | 本科}
+
+\section{专业技能}
+\begin{itemize}[parsep=0.05ex]
+  \item \textbf{编程语言：} 熟悉 C/C++，掌握 STL 常用容器与算法、面向对象、模板、智能指针、移动语义及 RAII,具备良好的编码、调试与资源管理能力。
+  % \item \textbf{数据结构与算法：} 掌握数组、链表、栈、队列、哈希表、树、堆、跳表等常用数据结构，熟悉排序、查找及常见算法思想。
+  \item \textbf{操作系统：} 熟悉 Linux 开发环境与常用命令，理解进程、线程、虚拟内存、文件描述符及 I/O 多路复用等基础机制。
+  \item \textbf{网络编程：} 熟悉 TCP/IP、HTTP、Socket 编程及客户端与服务端通信流程，理解非阻塞 I/O、epoll 和 Reactor 事件驱动模型。
+  \item \textbf{并发编程：} 掌握 C++ 线程、互斥锁、读写锁、条件变量及原子操作，理解线程池、任务队列、线程同步与常见并发安全问题。
+  \item \textbf{数据库与存储：} 熟悉 MySQL、Redis 的基本使用,理解事务、索引、MVCC、WAL 与隔离级别；了解 LSM-Tree、MemTable、SSTable、Compaction、Bloom Filter 和 Block Cache 等存储机制。
+  \item \textbf{开发工具：} 熟悉 Git、GDB、CMake/XMake、Makefile等工具
+\end{itemize}
+
+\section{项目经历}
+\noindent\textbf{基于 LSM-Tree 的 Redis 兼容持久化 KV 存储引擎}\par
+\vspace{0.15ex}
+基于 C++20 实现的单机持久化 KV 存储系统，在 LSM-Tree 存储引擎之上扩展部分 Redis RESP 命令与复杂数据结构。\par
+\begin{itemize}[parsep=0.05ex]
+  \item \textbf{完善 LSM 读写链路：} 基于 SkipList MemTable、Immutable MemTable 与 SSTable 支持点查、范围查询、删除和批量写，并结合 Bloom Filter 与 Block Cache 优化点查路径；写入遵循 WAL-first 流程。
+  \item \textbf{扩展 Redis 数据结构：} 将 String、Hash、Set、List、ZSet 常用命令映射为内部 KV，通过类型键与前缀键组织 field、member 和 score，复用 LSM 点查与前缀扫描能力。
+  \item \textbf{设计成员索引缓存：} 为 Hash、Set、ZSet 增加进程内成员索引缓存，首次访问通过前缀扫描懒加载，后续写入和删除时增量维护 size、member 与 member-score 映射，减少重复底层查询。
+  \item \textbf{完善恢复与压缩链路：} 实现 WAL 缓冲刷盘、日志滚动、Checkpoint 清理与重启恢复，并在 Compaction 中结合活跃事务 watermark 保留必要历史版本和 Tombstone。
+  \item \textbf{验证正确性与性能：} 使用 GoogleTest 覆盖 WAL、LSM、Compaction、WiscKey 与 RedisWrapper；在 VMware、100 并发、10 万请求下，热点 GET 达约 20.3 万 QPS，百万随机空间下 SET、HSET、SADD、ZADD 分别约为 5.7 万、5.1 万、5.2 万和 2.5 万 QPS。
+\end{itemize}
+
+\noindent\textbf{TingyWeb：基于 Reactor 的 C++ 高并发 Web 服务器}\par
+\vspace{0.15ex}
+基于 C++14 实现的 Linux 静态资源 HTTP 服务器，采用 epoll、非阻塞 Socket、线程池和 MySQL 连接池完成请求解析、静态文件响应与登录注册。\par
+\begin{itemize}[parsep=0.05ex]
+  \item \textbf{设计事件驱动网络架构：} 封装 Epoller 管理 fd 增删改查，支持 LT/ET 与 EPOLLONESHOT；主循环接收连接并将读写事件投递到线程池，避免同一连接被并发处理。
+  \item \textbf{实现 HTTP 请求处理链路：} 解析请求行、请求头和 urlencoded 表单，支持 GET/POST、Keep-Alive、静态资源访问以及登录/注册路径，业务请求复用 MySQL 连接池。
+  \item \textbf{优化 I/O 与连接管理：} 使用 readv 配合额外缓冲区完成分散读取，响应侧通过 mmap 与 writev 减少静态文件复制和发送次数，并使用小根堆定时器清理空闲连接。
+  \item \textbf{验证并发服务能力：} 使用 wrk 在 8 vCPU、4 GB Ubuntu 虚拟机上同机压测，2 线程、10000 并发连接下平均约 1.46 万 QPS，平均延迟约 540 ms，P99 约 1.02 s。
+\end{itemize}
+\end{document}
