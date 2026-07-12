@@ -1,11 +1,10 @@
 #include "config/config.h"
 #include "lsm/engine.h"
 #include "lsm/transaction.h"
-#include "sst/sst.h"
 #include "utils/files.h"
 #include "utils/set_operation.h"
 #include "spdlog/spdlog.h"
-#include "vlog/vlog.h"
+
 #include "wal/record.h"
 #include <algorithm>
 #include <cerrno>
@@ -15,15 +14,12 @@
 #include <cstring>
 #include <ctime>
 #include <filesystem>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <stdexcept>
-#include <stdatomic.h>
+
 #include <string>
-#include <thread>
-#include <utility>
+
 #include <vector>
 #include <unordered_set>
 namespace tiny_lsm {

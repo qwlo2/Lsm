@@ -1,10 +1,6 @@
 #include "redis_wrapper/redis_wrapper.h"
-#include "block/block_cache.h"
 #include "config/config.h"
-#include "consts.h"
-#include "lsm/transaction.h"
-#include "sst/sst.h"
-#include "wal/record.h"
+
 #include <algorithm>
 #include <charconv>
 #include <chrono>
@@ -19,14 +15,12 @@
 #include <optional>
 #include <shared_mutex>
 #include <sstream>
-#include <stdatomic.h>
-#include <stop_token>
+
 #include <string>
 #include <system_error>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
-#include <variant>
+
 #include <vector>
 
 namespace tiny_lsm {
