@@ -1,7 +1,9 @@
 #include "utils/files.h"
 #include "utils/cursor.h"
-#include <cstring>
+#include "utils/std_file.h"
+#include <memory>
 #include <stdexcept>
+#include <utility>
 
 namespace tiny_lsm {
 FileObj::FileObj() : m_file(std::make_unique<StdFile>()) {}

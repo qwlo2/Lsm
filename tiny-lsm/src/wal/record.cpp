@@ -4,9 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <functional>
 #include <stdexcept>
-#include <utility>
+#include <string>
 #include <vector>
 
 namespace tiny_lsm {

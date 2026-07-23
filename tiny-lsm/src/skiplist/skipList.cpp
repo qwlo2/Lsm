@@ -1,5 +1,4 @@
 #include "skiplist/skiplist.h"
-#include "common/common.h"
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -7,7 +6,6 @@
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <tuple>
-#include <unistd.h>
 #include <utility>
 #include <vector>
 
@@ -70,6 +68,9 @@ bool SkipListIterator::is_end() const { return current == nullptr; }
 std::string SkipListIterator::get_key() const { return current->entry.key; }
 std::string SkipListIterator::get_value() const { return current->entry.value; }
 uint64_t SkipListIterator::get_tranc_id() const { return current->entry.tranc_id; }
+EntryState SkipListIterator::get_effective_state() const {
+  return current->entry.effective_state();
+}
 
 // ************************ SkipList ************************
 // 构造函数
@@ -106,11 +107,12 @@ int SkipList::random_level() {
 // ? 若key存在且tranc_id相同, 仅更新value; 否则插入新节点
 // ? 注意维护 size_bytes
 void SkipList::put(const std::string &key, const std::string &value,
-                   uint64_t ts) {
+                   uint64_t ts, EntryState state,
+                   std::shared_ptr<SharedEntryState> shared_state) {
   auto prev = head;
   std::vector<std::shared_ptr<SkipListNode>> update(max_level);
    int level=random_level();
-   auto e=Entry(key,value,ts);
+   auto e=Entry(key,value,ts,state,std::move(shared_state));
   auto node = std::make_shared<SkipListNode>(e,level);
   for (int i = current_level-1; i >= 0; i--) {
     while (prev->forward_[i] &&*prev->forward_[i] < *node) { // 直接比较节点，txn_id大的在前面
@@ -118,13 +120,8 @@ void SkipList::put(const std::string &key, const std::string &value,
     }
       update[i]=prev;
   }
-  //在mvcc之前skiplist是内存，之后是批量写入的缓冲区，事务有单独的区域直接操作
-  //  auto next = update[0]->forward_[0];
-  // if (next && next->entry.key == key && next->entry.tranc_id == ts) {
-  //   size_bytes += value.size() - next->entry.value.size();
-  //   next->entry.value = value;
-  //   return;
-  // }
+  // 同一事务对同一 key 的最终已提交版本也采用追加写。
+  // RU 的旧未提交版本由共享事务状态整体失效，避免原地修改节点与并发读竞争。
 
   if (level > current_level) {
   for (int i = current_level; i < level; ++i) {
@@ -196,29 +193,29 @@ void SkipList::put(const std::string &key, const std::string &value,
 // TODO: 完成查找后还需要额外实现SkipListIterator中的TODO部分(Lab1.2)
 // 查找键值对
 // 确认下一个节点>=key，true，则向下一层继续比较，false，则当前层继续比较下一个节点，直到找到key或者到达底层
-SkipListIterator SkipList::get(const std::string &key, uint64_t tranc_id) {
+SkipListIterator SkipList::get(const std::string &key, uint64_t tranc_id,
+                               ReadVisibility visibility) {
   spdlog::trace("SkipList--get({}) called", key);
-  auto e=Entry(key, "",tranc_id);
-  auto node = std::make_shared<SkipListNode>(e, current_level);
   auto current = head;
-  //在0层找到key
+
   for (int i = current_level - 1; i >= 0; i--) {
-    while (current->forward_[i] && current->forward_[i]->entry.key<node->entry.key) {
+    while (current->forward_[i] &&
+           current->forward_[i]->entry.key < key) {
       current = current->forward_[i];
     }
   }
-  //判断位置,0表示读已提交，！0表示可重复读
-    if (tranc_id != 0 ) {
-      while (current->forward_[0] && *current->forward_[0]<*node) {
-      current = current->forward_[0];
+
+  auto candidate = current->forward_[0];
+  while (candidate && candidate->entry.key == key) {
+    const bool txn_visible =
+        tranc_id == 0 || candidate->entry.tranc_id <= tranc_id;
+    if (txn_visible && is_state_visible(candidate->entry, visibility)) {
+      return SkipListIterator(candidate);
     }
+    candidate = candidate->forward_[0];
   }
-  if (current->forward_[0] && current->forward_[0]->entry.key == key){
-    if (tranc_id==0||current->forward_[0]->entry.tranc_id<=tranc_id) {
-         return  SkipListIterator(current->forward_[0]);
-    }
-  }
-  return SkipListIterator(); // 返回空迭代器表示未找到
+
+  return SkipListIterator{};
 }
 
 // 删除键值对
@@ -293,7 +290,9 @@ std::vector<std::tuple<std::string, std::string, uint64_t>> SkipList::flush() {
   std::vector<std::tuple<std::string, std::string, uint64_t>> data;
   auto node = head->forward_[0];
   while (node) {
-    data.emplace_back(node->entry.key, node->entry.value, node->entry.tranc_id);
+    if (node->entry.effective_state() == EntryState::COMMITTED) {
+      data.emplace_back(node->entry.key, node->entry.value, node->entry.tranc_id);
+    }
     node = node->forward_[0];
   }
 

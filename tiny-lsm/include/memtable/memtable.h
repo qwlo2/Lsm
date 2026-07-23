@@ -5,16 +5,15 @@
 #include "skiplist/skiplist.h"
 //#include "common/common.h"
 #include <cstddef>
+#include <cstdint>
 #include <functional>
-#include <iostream>
 #include <list>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <shared_mutex>
 #include <string>
-#include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace tiny_lsm {
 
@@ -33,15 +32,23 @@ class MemTable {
   friend class LSM;
 private:
   void put_(const std::string &key, const std::string &value,
-            uint64_t tranc_id);
+            uint64_t tranc_id,
+            EntryState state = EntryState::COMMITTED,
+            std::shared_ptr<SharedEntryState> shared_state = nullptr);
 
-  SkipListIterator get_(const std::string &key, uint64_t tranc_id);
+  SkipListIterator get_(
+      const std::string &key, uint64_t tranc_id,
+      ReadVisibility visibility = ReadVisibility::COMMITTED_ONLY);
 
-  SkipListIterator cur_get_(const std::string &key, uint64_t tranc_id);
+  SkipListIterator cur_get_(const std::string &key, uint64_t tranc_id,
+                            ReadVisibility visibility);
 
-  SkipListIterator frozen_get_(const std::string &key, uint64_t tranc_id);
+  SkipListIterator frozen_get_(const std::string &key, uint64_t tranc_id,
+                               ReadVisibility visibility);
 
-  void remove_(const std::string &key, uint64_t tranc_id);
+  void remove_(const std::string &key, uint64_t tranc_id,
+               EntryState state = EntryState::COMMITTED,
+               std::shared_ptr<SharedEntryState> shared_state = nullptr);
   void frozen_cur_table_(); // _ 表示不需要锁的版本
    //为了写冲突，标志与put_一致加的
    void maybe_frozen_cur_table_();
@@ -49,16 +56,27 @@ public:
   MemTable();
   ~MemTable();
 
-  void put(const std::string &key, const std::string &value, uint64_t tranc_id);
+  void put(const std::string &key, const std::string &value, uint64_t tranc_id,
+           EntryState state = EntryState::COMMITTED,
+           std::shared_ptr<SharedEntryState> shared_state = nullptr);
   void put_batch(const std::vector<std::pair<std::string, std::string>> &kvs,
-                 uint64_t tranc_id);
+                 uint64_t tranc_id,
+                 EntryState state = EntryState::COMMITTED,
+                 std::shared_ptr<SharedEntryState> shared_state = nullptr);
 
-  SkipListIterator get(const std::string &key, uint64_t tranc_id);
+  SkipListIterator get(
+      const std::string &key, uint64_t tranc_id,
+      ReadVisibility visibility = ReadVisibility::COMMITTED_ONLY);
   std::vector<
       std::pair<std::string, std::optional<std::pair<std::string, uint64_t>>>>
-  get_batch(const std::vector<std::string> &keys, uint64_t tranc_id);
-  void remove(const std::string &key, uint64_t tranc_id);
-  void remove_batch(const std::vector<std::string> &keys, uint64_t tranc_id);
+  get_batch(const std::vector<std::string> &keys, uint64_t tranc_id,
+            ReadVisibility visibility = ReadVisibility::COMMITTED_ONLY);
+  void remove(const std::string &key, uint64_t tranc_id,
+              EntryState state = EntryState::COMMITTED,
+              std::shared_ptr<SharedEntryState> shared_state = nullptr);
+  void remove_batch(const std::vector<std::string> &keys, uint64_t tranc_id,
+                    EntryState state = EntryState::COMMITTED,
+                    std::shared_ptr<SharedEntryState> shared_state = nullptr);
 
   void clear();
   std::shared_ptr<SST> flush_last(SSTBuilder &builder, std::string &sst_path,
@@ -72,12 +90,18 @@ public:
   size_t get_cur_size();
   size_t get_frozen_size();
   size_t get_total_size();
-  std::shared_ptr<HeapIterator> begin(uint64_t tranc_id);
-  HeapIterator iters_preffix(const std::string &preffix, uint64_t tranc_id);
+  std::shared_ptr<HeapIterator>
+  begin(uint64_t tranc_id,
+        ReadVisibility visibility = ReadVisibility::COMMITTED_ONLY);
+  HeapIterator
+  iters_preffix(const std::string &preffix, uint64_t tranc_id,
+                ReadVisibility visibility = ReadVisibility::COMMITTED_ONLY);
 
   std::optional<std::pair<HeapIterator, HeapIterator>>
   iters_monotony_predicate(uint64_t tranc_id,
-                           std::function<int(const std::string &)> predicate);
+                           std::function<int(const std::string &)> predicate,
+                           ReadVisibility visibility =
+                               ReadVisibility::COMMITTED_ONLY);
 
   HeapIterator end();
 

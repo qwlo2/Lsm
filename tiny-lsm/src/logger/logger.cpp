@@ -1,5 +1,7 @@
+#include "logger/logger.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/spdlog.h"
+#include <mutex>
 
 namespace tiny_lsm {
 

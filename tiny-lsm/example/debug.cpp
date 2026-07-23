@@ -1,6 +1,4 @@
 #include "lsm/engine.h"
-#include <iostream>
-#include <string>
 
 using namespace ::tiny_lsm;
 

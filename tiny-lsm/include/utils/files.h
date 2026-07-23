@@ -1,7 +1,5 @@
 #pragma once
 
-#include "mmap_file.h"
-#include "std_file.h"
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -11,6 +9,7 @@
 namespace tiny_lsm {
 
 class Cursor;
+class StdFile;
 
 class FileObj {
 private:

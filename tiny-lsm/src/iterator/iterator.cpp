@@ -1,9 +1,9 @@
 #include "iterator/iterator.h"
 //#include "gmock/gmock.h"
+#include <cstdint>
+#include <functional>
 #include <memory>
-#include <stdexcept>
 #include <string>
-#include <tuple>
 #include <utility>
 #include <vector>
 

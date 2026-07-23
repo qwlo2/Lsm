@@ -1,9 +1,12 @@
 #pragma once
 #include "block/block_iterator.h"
+#include "iterator/iterator.h"
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 

@@ -1,14 +1,13 @@
 #include "sst/sst.h"
 #include "config/config.h"
-#include "consts.h"
 #include "sst/sst_iterator.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <functional>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 namespace tiny_lsm {
 

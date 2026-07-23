@@ -1,16 +1,18 @@
 #pragma once
 
-#include "block.h"
+#include <array>
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <memory>
 #include <mutex>
-#include <sys/types.h>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 namespace tiny_lsm {
+
+class Block;
 
 // 定义缓存项
 struct CacheItem {
@@ -57,24 +59,28 @@ public:
   double hit_rate() const;
 
 private:
-  size_t capacity_;          // 缓存容量
-  size_t k_;                 // LRU-K 中的 K 值
-  mutable std::mutex mutex_; // 互斥锁保护缓存池
+  using CacheKey = std::pair<int, int>;
+  using CacheList = std::list<CacheItem>;
+  using CacheMap =
+      std::unordered_map<CacheKey, CacheList::iterator, pair_hash, pair_equal>;
 
-  // 双向链表存储缓存项
-  std::list<CacheItem> cache_list_greater_k;
-  std::list<CacheItem> cache_list_less_k;
+  struct CacheShard {
+    mutable std::mutex mutex;
+    size_t capacity = 0;
+    CacheList cache_list_greater_k;
+    CacheList cache_list_less_k;
+    CacheMap cache_map;
+    size_t total_requests = 0;
+    size_t hit_requests = 0;
+  };
 
-  // 哈希表索引缓存项
-  std::unordered_map<std::pair<int, int>, std::list<CacheItem>::iterator,
-                     pair_hash, pair_equal>
-      cache_map_;
+  static constexpr size_t kShardCount = 4;
 
-  // 更新缓存项的访问时间
-  void update_access_count(std::list<CacheItem>::iterator it);
+  size_t capacity_;
+  size_t k_;
+  std::array<CacheShard, kShardCount> shards_;
 
-  // 记录请求数和命中数
-  mutable size_t total_requests_ = 0;
-  mutable size_t hit_requests_ = 0;
+  size_t shard_index(int sst_id, int block_id) const;
+  void update_access_count(CacheShard &shard, CacheList::iterator it);
 };
 } // namespace tiny_lsm

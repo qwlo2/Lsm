@@ -4,10 +4,8 @@
 #include <algorithm>
 #include <charconv>
 #include <chrono>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <ctime>
 #include <iomanip>
 #include <memory>
@@ -15,12 +13,8 @@
 #include <optional>
 #include <shared_mutex>
 #include <sstream>
-
 #include <string>
 #include <system_error>
-#include <unordered_map>
-#include <unordered_set>
-
 #include <vector>
 
 namespace tiny_lsm {
@@ -28,6 +22,14 @@ namespace tiny_lsm {
 // Helper functions
 RedisWrapper::RedisWrapper(const std::string &db_path) {
   this->lsm = std::make_unique<LSM>(db_path);
+}
+
+size_t RedisWrapper::key_lock_index(const std::string &key) const {
+  return std::hash<std::string>{}(key) % kKeyLockShardCount;
+}
+
+std::shared_mutex &RedisWrapper::key_mutex(const std::string &key) const {
+  return key_lock_shards_[key_lock_index(key)];
 }
 //将filed_value转为filed
 std::vector<std::string>
@@ -245,167 +247,176 @@ constexpr const char *REDIS_WRONGTYPE =
     "-WRONGTYPE Operation against a key holding the wrong kind of value\r\n";
 
 // ************************ Redis *************************
-//检查统一命名空间，只是插入type信息
-bool RedisWrapper::check_or_create_type_unlocked(const std::string &key,
-                                                 const std::string &type) {
-  auto cache_it = type_cache_.find(key);
-  if (cache_it != type_cache_.end()) {
-    return cache_it->second == type;
+std::optional<std::string>
+RedisWrapper::get_type_cached(const std::string &key) {
+  {
+    std::shared_lock lock(type_cache_mtx_);
+    auto cache_it = type_cache_.find(key);
+    if (cache_it != type_cache_.end()) {
+      return cache_it->second;
+    }
   }
 
-  const auto &type_key = get_type_key(key);
-  const auto &old_type = lsm->get(type_key);
-  // 同类型存在即add，不同类型存在即错误
-  if (old_type && old_type.value() != type) {
-    type_cache_[key] = old_type.value();
-    return false;
+  auto type = lsm->get(get_type_key(key));
+  if (type) {
+    std::unique_lock lock(type_cache_mtx_);
+    type_cache_[key] = *type;
+  }
+  return type;
+}
+
+// 调用者必须持有逻辑 key 的独占锁。
+bool RedisWrapper::check_or_create_type_locked(const std::string &key,
+                                               const std::string &type) {
+  auto old_type = get_type_cached(key);
+  if (old_type) {
+    return *old_type == type;
   }
 
-  if (!old_type) {
-    lsm->put(type_key, type);
+  lsm->put(get_type_key(key), type);
+  {
+    std::unique_lock lock(type_cache_mtx_);
+    type_cache_[key] = type;
   }
-
-  type_cache_[key] = type;
   return true;
 }
-//删除单个key缓存
-void RedisWrapper::erase_key_cache_unlocked(const std::string& key) {
+
+// 调用者必须已经独占持有全部四把缓存锁。
+void RedisWrapper::erase_key_cache_unlocked(const std::string &key) {
   type_cache_.erase(key);
-  //set
   set_size_cache_.erase(key);
   set_member_cache_.erase(key);
   set_member_loaded_.erase(key);
-  //hash
-   hash_field_cache_.erase(key);
+  hash_field_cache_.erase(key);
   hash_size_cache_.erase(key);
   hash_loaded_.erase(key);
-  //zset
   zset_size_cache_.erase(key);
-zset_elem_score_cache_.erase(key);
-zset_loaded_.erase(key);
+  zset_elem_score_cache_.erase(key);
+  zset_loaded_.erase(key);
 }
-//第一次访问某个 set 时把各种信息加入
-void RedisWrapper::load_set_cache_unlocked(const std::string& key) {
-  if (set_member_loaded_.contains(key)) {
-    return;
+
+void RedisWrapper::erase_key_cache(const std::string &key) {
+  std::scoped_lock lock(type_cache_mtx_, hash_cache_mtx_, set_cache_mtx_,
+                        zset_cache_mtx_);
+  erase_key_cache_unlocked(key);
+}
+
+// 调用者必须持有逻辑 key 的共享锁或独占锁。
+void RedisWrapper::load_set_cache_locked(const std::string &key) {
+  {
+    std::shared_lock lock(set_cache_mtx_);
+    if (set_member_loaded_.contains(key)) {
+      return;
+    }
   }
 
   auto prefix = get_set_member_prefix(key);
   auto size_key = get_set_key_preffix(key);
-
+  std::unordered_set<std::string> members;
   auto result = lsm->lsm_iters_monotony_predicate(
-      0, [&prefix](const std::string& k) {
+      0, [&prefix](const std::string &k) {
         return -k.compare(0, prefix.size(), prefix);
       });
-  //把属于key的成员加入
-  auto& members = set_member_cache_[key];
 
   if (result) {
     auto begin = result->first;
     auto end = result->second;
-
-    for (; begin != end&& begin.is_valid(); ++begin) {
-      const auto& full_key = (*begin).first;
-      if (full_key == size_key) {
-        continue;
-      }
-      if (full_key.size() < prefix.size()){
-        continue;
-      }
-      if (full_key.compare(0, prefix.size(), prefix) != 0) {
+    for (; begin != end && begin.is_valid(); ++begin) {
+      const auto &full_key = (*begin).first;
+      if (full_key == size_key || full_key.size() < prefix.size() ||
+          full_key.compare(0, prefix.size(), prefix) != 0) {
         continue;
       }
       members.emplace(full_key.substr(prefix.size()));
     }
   }
 
-  // if (auto size = lsm->get(size_key)) {
-  //   //set大小
-  //   set_size_cache_[key] = std::stoll(size.value());
-  // } else {
-  //   set_size_cache_[key] = members.size();
-  // }
-  set_size_cache_[key] = members.size();
-  //属于set的key
-  set_member_loaded_.emplace(key);
+  std::unique_lock lock(set_cache_mtx_);
+  if (!set_member_loaded_.contains(key)) {
+    set_size_cache_[key] = static_cast<int64_t>(members.size());
+    set_member_cache_[key] = std::move(members);
+    set_member_loaded_.emplace(key);
+  }
 }
-//hash
-void RedisWrapper::load_hash_cache_unlocked(const std::string& key) {
-  if (hash_loaded_.contains(key)) {
-    return;
+
+// 调用者必须持有逻辑 key 的共享锁或独占锁。
+void RedisWrapper::load_hash_cache_locked(const std::string &key) {
+  {
+    std::shared_lock lock(hash_cache_mtx_);
+    if (hash_loaded_.contains(key)) {
+      return;
+    }
   }
 
   auto field_prefix = get_hash_field_prefix(key);
+  std::unordered_set<std::string> fields;
   auto result = lsm->lsm_iters_monotony_predicate(
-      0, [&field_prefix](const std::string& k) {
+      0, [&field_prefix](const std::string &k) {
         return -k.compare(0, field_prefix.size(), field_prefix);
       });
-
-  auto& fields = hash_field_cache_[key];
 
   if (result) {
     auto begin = result->first;
     auto end = result->second;
-
-    for (; begin != end&& begin.is_valid(); ++begin) {
-      const auto& full_key = (*begin).first;
-      if (full_key.size() < field_prefix.size()) {
-        continue;
-      }
-      if (full_key.compare(0, field_prefix.size(), field_prefix) != 0) {
+    for (; begin != end && begin.is_valid(); ++begin) {
+      const auto &full_key = (*begin).first;
+      if (full_key.size() < field_prefix.size() ||
+          full_key.compare(0, field_prefix.size(), field_prefix) != 0) {
         continue;
       }
       fields.emplace(full_key.substr(field_prefix.size()));
     }
   }
 
-  // if (auto size = lsm->get(get_hash_size_key(key))) {
-  //   hash_size_cache_[key] = std::stoll(size.value());
-  // } else {
-  //   hash_size_cache_[key] = fields.size();
-  // }
-   hash_size_cache_[key] = fields.size();
-  hash_loaded_.emplace(key);
-}
-//zset
-void RedisWrapper::load_zset_cache_unlocked(const std::string& key) {
-  if (zset_loaded_.contains(key)) {
-    return;
+  std::unique_lock lock(hash_cache_mtx_);
+  if (!hash_loaded_.contains(key)) {
+    hash_size_cache_[key] = static_cast<int64_t>(fields.size());
+    hash_field_cache_[key] = std::move(fields);
+    hash_loaded_.emplace(key);
   }
-  
+}
+
+// 调用者必须持有逻辑 key 的共享锁或独占锁。
+void RedisWrapper::load_zset_cache_locked(const std::string &key) {
+  {
+    std::shared_lock lock(zset_cache_mtx_);
+    if (zset_loaded_.contains(key)) {
+      return;
+    }
+  }
+
   auto elem_prefix = get_zset_elem_preffix(key);
+  std::unordered_map<std::string, std::string> elem_scores;
   auto result = lsm->lsm_iters_monotony_predicate(
-      0, [&elem_prefix](const std::string& k) {
+      0, [&elem_prefix](const std::string &k) {
         return -k.compare(0, elem_prefix.size(), elem_prefix);
       });
 
-  auto& elem_scores = zset_elem_score_cache_[key];
-   //把elem-score录入
   if (result) {
     auto begin = result->first;
     auto end = result->second;
-
     for (; begin != end && begin.is_valid(); ++begin) {
       auto item = *begin;
-      if (item.first.size() < elem_prefix.size()) {
+      if (item.first.size() < elem_prefix.size() ||
+          item.first.compare(0, elem_prefix.size(), elem_prefix) != 0 ||
+          item.first.empty() || item.second.empty()) {
         continue;
       }
-      if (item.first.compare(0, elem_prefix.size(), elem_prefix) != 0) {
-        continue;
-      }
-      if (!item.first.empty() && !item.second.empty()) {
-        elem_scores.emplace(item.first.substr(elem_prefix.size()), item.second);
-      }
+      elem_scores.emplace(item.first.substr(elem_prefix.size()), item.second);
     }
   }
- 
-  zset_size_cache_[key] = elem_scores.size();
-  
-  zset_loaded_.emplace(key);
+
+  std::unique_lock lock(zset_cache_mtx_);
+  if (!zset_loaded_.contains(key)) {
+    zset_size_cache_[key] = static_cast<int64_t>(elem_scores.size());
+    zset_elem_score_cache_[key] = std::move(elem_scores);
+    zset_loaded_.emplace(key);
+  }
 }
-//判断key是什么类型并删除
-bool RedisWrapper::delete_key_unlocked(const std::string &key) {
-       auto type = lsm->get(get_type_key(key));
+
+// 调用者必须持有逻辑 key 的独占锁。
+bool RedisWrapper::delete_key_locked(const std::string &key) {
+  auto type = get_type_cached(key);
   bool existed = false;
   std::vector<std::string> remove_keys;
   //通过前缀收集所有要删除的，hash要额外加key->faiel
@@ -450,137 +461,36 @@ bool RedisWrapper::delete_key_unlocked(const std::string &key) {
   if (!remove_keys.empty()) {
     lsm->remove_batch(remove_keys);
   }
-  //清理缓存
-  erase_key_cache_unlocked(key);
+  erase_key_cache(key);
   return existed;
 }
-//统一clean
- bool RedisWrapper::expire_clean(const std::string &key,
-                         std::shared_lock<std::shared_mutex> &rlock){
-   auto expire_query = lsm->get(get_explire_key(key));
 
-  if (is_expired(expire_query, nullptr)) {
-    rlock.unlock();
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-    delete_key_unlocked(key);
-    return true;
+bool RedisWrapper::expire_clean_locked(const std::string &key) {
+  if (!is_expired(lsm->get(get_explire_key(key)), nullptr)) {
+    return false;
   }
-
-  return false;
-}
-bool RedisWrapper::expire_hash_clean(
-    const std::string &key, std::shared_lock<std::shared_mutex> &rlock) {
-  std::string expire_key = get_explire_key(key);
-  auto expire_query = this->lsm->get(expire_key);
-
-  if (is_expired(expire_query, nullptr)) {
-    // 整个哈希数据结构都过期了, 需要删除所有的字段
-    // 先升级锁
-    rlock.unlock();                                       // 解锁读锁
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx); // 写锁
-    std::vector<std::string> tmp;
-    auto fileds = get_fileds_from_hash_value(lsm->get(key));
-    for (const auto &field : fileds) {
-      std::string field_key = get_hash_filed_key(key, field);
-      tmp.emplace_back(field_key);
-     // lsm->remove(field_key);
-    }
-    tmp.emplace_back(key);
-    tmp.emplace_back(expire_key);
-    tmp.emplace_back(get_type_key(key));
-    lsm->remove_batch(tmp);
-   // lsm->remove(key);
-   // lsm->remove(expire_key);
-    return true;
-  }
-  return false;
+  delete_key_locked(key);
+  return true;
 }
 
-bool RedisWrapper::expire_list_clean(
-    const std::string &key, std::shared_lock<std::shared_mutex> &rlock) {
-  std::string expire_key = get_explire_key(key);
-  auto expire_query = this->lsm->get(expire_key);
-  if (is_expired(expire_query, nullptr)) {
-     //auto list_seq=std::move(lsm->get(get_list_key_prefix(key)));
-     auto seq=std::move(get_list_key_seq(lsm->get(get_list_key_prefix(key)).value()));
-     auto start=std::move(std::stoi(seq.first));
-     auto stop=std::move(std::stoi(seq.second));
-     std::vector<std::string> re;
-    for(;start<=stop;++start){
-        re.emplace_back(get_list_value_key(key,start));
-    }
-    re.emplace_back(get_list_key_prefix(key));
-    re.emplace_back(expire_key);
-    re.emplace_back(get_type_key(key));
-    // 链表都过期了, 需要删除链表
-    // 先升级锁
-    rlock.unlock();                                       // 解锁读锁
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx); // 写锁
-   lsm->remove_batch(re);
-    return true;
+// 读命令的共享 key 锁升级。升级期间必须二次确认过期状态，
+// 防止另一个写命令刚好重建了同名 key。
+bool RedisWrapper::expire_clean(
+    const std::string &key,
+    std::shared_lock<std::shared_mutex> &rlock) {
+  if (!is_expired(lsm->get(get_explire_key(key)), nullptr)) {
+    return false;
   }
-  return false;
-}
 
-bool RedisWrapper::expire_zset_clean(
-    const std::string &key, std::shared_lock<std::shared_mutex> &rlock) {
-  std::string expire_key = get_explire_key(key);
-  auto expire_query = this->lsm->get(expire_key);
-  if (is_expired(expire_query, nullptr)) {
-    // 都过期了, 需要删除zset
-    // 先升级锁
-    rlock.unlock();                                       // 解锁读锁
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx); // 写锁
-    //lsm->remove(key);
-    lsm->remove(expire_key);
-    //由于key->size也是get_zset_key_preffix，在谓词查询也检索了
-    auto preffix = get_zset_key_preffix(key);
-    auto result_elem = this->lsm->lsm_iters_monotony_predicate(
-        0, [&preffix](const std::string &elem) {
-          return -elem.compare(0, preffix.size(), preffix);
-        });
-    if (result_elem.has_value()) {
-      auto [elem_begin, elem_end] = result_elem.value();
-      std::vector<std::string> remove_vec;
-      for (; elem_begin != elem_end; ++elem_begin) {
-        remove_vec.push_back(elem_begin->first);
-      }
-      remove_vec.emplace_back(get_type_key(key));
-      lsm->remove_batch(remove_vec);
-    }
+  rlock.unlock();
+  std::unique_lock wlock(key_mutex(key));
+  if (is_expired(lsm->get(get_explire_key(key)), nullptr)) {
+    delete_key_locked(key);
     return true;
   }
-  return false;
-}
 
-bool RedisWrapper::expire_set_clean(
-    const std::string &key, std::shared_lock<std::shared_mutex> &rlock) {
-  std::string expire_key = get_explire_key(key);
-  auto expire_query = this->lsm->get(expire_key);
-  if (is_expired(expire_query, nullptr)) {
-    // set都过期了, 需要删除set
-    // 先升级锁
-    rlock.unlock();                                       // 解锁读锁
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx); // 写锁
-    //lsm->remove(key);
-   // lsm->remove(get_set_key_preffix(key));
-    lsm->remove(expire_key);
-    auto preffix = get_set_key_preffix(key);
-    auto result_elem = this->lsm->lsm_iters_monotony_predicate(
-        0, [&preffix](const std::string &elem) {
-          return -elem.compare(0, preffix.size(), preffix);
-        });
-    if (result_elem.has_value()) {
-      auto [elem_begin, elem_end] = result_elem.value();
-      std::vector<std::string> remove_vec;
-      for (; elem_begin != elem_end; ++elem_begin) {
-        remove_vec.push_back(elem_begin->first);
-      }
-      remove_vec.emplace_back(get_type_key(key));
-      lsm->remove_batch(remove_vec);
-    }
-    return true;
-  }
+  wlock.unlock();
+  rlock = std::shared_lock<std::shared_mutex>(key_mutex(key));
   return false;
 }
 
@@ -717,22 +627,29 @@ std::string RedisWrapper::smembers(std::vector<std::string> &args) {
  std::string RedisWrapper::hsetnx(std::vector<std::string> &args){
      return  hset_not_exitst(args);
  }
-void RedisWrapper::clear() { 
-   type_cache_.clear();
-   //set
-  set_size_cache_.clear();
-  set_member_cache_.clear();
-  set_member_loaded_.clear();
-  //hash
-  hash_field_cache_.clear();
-  hash_size_cache_.clear();
-  hash_loaded_.clear();
-  //zset
-  zset_size_cache_.clear();
-  zset_elem_score_cache_.clear();
-  zset_loaded_.clear();
+void RedisWrapper::clear() {
+  std::vector<std::unique_lock<std::shared_mutex>> key_locks;
+  key_locks.reserve(kKeyLockShardCount);
+  for (auto &shard : key_lock_shards_) {
+    key_locks.emplace_back(shard);
+  }
 
-  this->lsm->clear(); 
+  {
+    std::scoped_lock cache_locks(type_cache_mtx_, hash_cache_mtx_,
+                                 set_cache_mtx_, zset_cache_mtx_);
+    type_cache_.clear();
+    set_size_cache_.clear();
+    set_member_cache_.clear();
+    set_member_loaded_.clear();
+    hash_field_cache_.clear();
+    hash_size_cache_.clear();
+    hash_loaded_.clear();
+    zset_size_cache_.clear();
+    zset_elem_score_cache_.clear();
+    zset_loaded_.clear();
+  }
+
+  lsm->clear();
 }
 void RedisWrapper::flushall() { this->lsm->flush(); }
 
@@ -740,43 +657,57 @@ void RedisWrapper::flushall() { this->lsm->flush(); }
 // 基础操作
 //存在值类型则自增，否则新建-1，1，非值则-ERR
 std::string RedisWrapper::redis_incr(const std::string &key) {
-    std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-    //是否有旧的key存在且过期
-    if (!expire_clean(key,rlock)) {
-        rlock.unlock();
-    }
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-    //只有string才可以自增
-    if (const auto& key_typr=lsm->get(get_type_key(key));key_typr&&key_typr.value()!=REDIS_TYPE_STRING) {
-            return REDIS_WRONGTYPE;
-    }
-    if (const auto& key_quary=lsm->get(key)) {
-        int  tmp;
-        //from_chars将字符串转为整数
-       //返回2个结构体变量，最后一个指针以及错误码
-       //errc()是则是一个临时对象，表示无错误
-       const auto& value = key_quary.value();
-      auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), tmp);
-      //是整数
-     if (ptr == value.data() + value.size()&&ec==std::errc()) {
-             ++tmp;
-             lsm->put(key,std::to_string(tmp));
-             return std::to_string(tmp);
-      }
-      //不是整数
+  std::unique_lock key_lock(key_mutex(key));
+  expire_clean_locked(key);
+
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_STRING) {
+    return REDIS_WRONGTYPE;
+  }
+
+  if (auto value_query = lsm->get(key)) {
+    int value = 0;
+    auto [ptr, ec] = std::from_chars(value_query->data(),
+                                     value_query->data() + value_query->size(),
+                                     value);
+    if (ptr != value_query->data() + value_query->size() ||
+        ec != std::errc()) {
       return "-ERR the value is not an integer\r\n";
     }
-    //key不存在
-     lsm->put(key,"1");
-     lsm->put(get_type_key(key), REDIS_TYPE_STRING);
-    return "1";
+    ++value;
+    lsm->put(key, std::to_string(value));
+    return std::to_string(value);
+  }
+
+  lsm->put_batch(
+      {{key, "1"}, {get_type_key(key), REDIS_TYPE_STRING}});
+  {
+    std::unique_lock cache_lock(type_cache_mtx_);
+    type_cache_[key] = REDIS_TYPE_STRING;
+  }
+  return "1";
 }
 //Redis 批量删除是内部按 key 一个个处理，但放在一条命令里执行
 std::string RedisWrapper::redis_del(std::vector<std::string> &args) {
-  std::unique_lock<std::shared_mutex> lock(redis_mtx);
+  std::vector<size_t> shard_indices;
+  shard_indices.reserve(args.size() > 1 ? args.size() - 1 : 0);
+  for (size_t i = 1; i < args.size(); ++i) {
+    shard_indices.emplace_back(key_lock_index(args[i]));
+  }
+  std::sort(shard_indices.begin(), shard_indices.end());
+  shard_indices.erase(
+      std::unique(shard_indices.begin(), shard_indices.end()),
+      shard_indices.end());
+
+  std::vector<std::unique_lock<std::shared_mutex>> key_locks;
+  key_locks.reserve(shard_indices.size());
+  for (size_t shard_index : shard_indices) {
+    key_locks.emplace_back(key_lock_shards_[shard_index]);
+  }
+
   int del_count = 0;
   for (size_t i = 1; i < args.size(); ++i) {
-    if (delete_key_unlocked(args[i])) {
+    if (delete_key_locked(args[i])) {
       ++del_count;
     }
   }
@@ -784,141 +715,94 @@ std::string RedisWrapper::redis_del(std::vector<std::string> &args) {
   return ":" + std::to_string(del_count) + "\r\n";
    
 }
-  std::string RedisWrapper::redis_decr(const std::string &key){
-      std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-      //是否有旧的key存在且过期
-    if (!expire_clean(key,rlock)) {
-        rlock.unlock();
-    }
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-     //只有string才可以自增
-    if (const auto& key_typr=lsm->get(get_type_key(key));key_typr&&key_typr.value()!=REDIS_TYPE_STRING) {
-            return REDIS_WRONGTYPE;
-    }
-    if (const auto& key_quary=lsm->get(key)) {
-        int tmp;
-        //from_chars将字符串转为整数
-       //返回2个结构体变量，最后一个指针以及错误码
-       //errc()是则是一个临时对象，表示无错误
-      const auto& value = key_quary.value();
-       auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), tmp);      //是整数
-     if (ptr == value.data() + value.size()&&ec==std::errc()) {
-             --tmp;
-             lsm->put(key,std::to_string(tmp));
-             return std::to_string(tmp);
-      }
-      //不是整数
+std::string RedisWrapper::redis_decr(const std::string &key) {
+  std::unique_lock key_lock(key_mutex(key));
+  expire_clean_locked(key);
+
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_STRING) {
+    return REDIS_WRONGTYPE;
+  }
+
+  if (auto value_query = lsm->get(key)) {
+    int value = 0;
+    auto [ptr, ec] = std::from_chars(value_query->data(),
+                                     value_query->data() + value_query->size(),
+                                     value);
+    if (ptr != value_query->data() + value_query->size() ||
+        ec != std::errc()) {
       return "-ERR the value is not an integer\r\n";
     }
-    //key不存在
-    //  rlock.unlock();
-    //  std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-     lsm->put(key,"-1");
-     lsm->put(get_type_key(key), REDIS_TYPE_STRING);
-    return "-1";
+    --value;
+    lsm->put(key, std::to_string(value));
+    return std::to_string(value);
   }
-//expire和set没有锁是因为他们与get与put等上层操作调用
-//一般上层有锁
+
+  lsm->put_batch(
+      {{key, "-1"}, {get_type_key(key), REDIS_TYPE_STRING}});
+  {
+    std::unique_lock cache_lock(type_cache_mtx_);
+    type_cache_[key] = REDIS_TYPE_STRING;
+  }
+  return "-1";
+}
 std::string RedisWrapper::redis_expire(const std::string &key,
                                        std::string seconds_count) {
-  //time,local_time,gettimeoftoday都是老接口
-  //推荐chrono
-   std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-   if (expire_clean(key,rlock)) {
-       return ":0\r\n";
-   }
-   rlock.unlock();
-   std::unique_lock wlock(redis_mtx);
-  if (!lsm->get(get_type_key(key))) {
-  return ":0\r\n"; // TTL
-  // 或 ":0\r\n" for EXPIRE
-}
-     auto expire_key=get_explire_key(key);
-     auto expire_time=get_expire_time(seconds_count);
-     lsm->put(expire_key,expire_time);
+  std::unique_lock key_lock(key_mutex(key));
+  if (expire_clean_locked(key) || !get_type_cached(key)) {
+    return ":0\r\n";
+  }
+
+  lsm->put(get_explire_key(key), get_expire_time(seconds_count));
   return ":1\r\n";
 }
 std::string RedisWrapper::redis_set(std::string &key, std::string &value) {
-  //key重新set要重置过期时间
-  std::unique_lock wlock(redis_mtx);
-  auto expire_key=get_explire_key(key);
-   //set时无条件重置，ttl要另外设置
-  //应该删去expire，防止新key同value，没有ttl被误判
-  //在string中，value更新会消除ttl
- //string的set特殊，会强制覆盖key，无论其存在与否，类型是什么
-   //delete_key_unlocked(key);
+  std::unique_lock key_lock(key_mutex(key));
   lsm->put_batch({
-    {key, value},
-    {get_type_key(key), REDIS_TYPE_STRING},
-});
-erase_key_cache_unlocked(key);
-type_cache_[key] = REDIS_TYPE_STRING;
-  //  lsm->put(key,value);
-  //  lsm->put(get_type_key(key), REDIS_TYPE_STRING);
-   return "+OK\r\n";
+      {key, value},
+      {get_type_key(key), REDIS_TYPE_STRING},
+  });
+  erase_key_cache(key);
+  {
+    std::unique_lock cache_lock(type_cache_mtx_);
+    type_cache_[key] = REDIS_TYPE_STRING;
+  }
+  return "+OK\r\n";
 }
 std::string RedisWrapper::redis_get(std::string &key) {
-  //检查类型
-  std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-  if (expire_clean(key,rlock)) {
-      return  "$-1\r\n";
+  std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
+  if (expire_clean(key, key_lock)) {
+    return "$-1\r\n";
   }
-  auto type = std::move(lsm->get(get_type_key(key)));
-if (type && type.value() != REDIS_TYPE_STRING) {
-  return REDIS_WRONGTYPE;
+
+  auto type = get_type_cached(key);
+  if (!type) {
+  return "$-1\r\n";
 }
-       auto expire_key=get_explire_key(key);
-     auto key_quary=lsm->get(key);
-     if (key_quary) {
-           if (auto expire_quary=lsm->get(expire_key)) {
-             time_t tim{};
-                   if (is_expired(expire_quary,&tim)) {
-                    rlock.unlock();
-                
-                    std::unique_lock wlock(redis_mtx);
-                    //移除expire——time
-                     lsm->remove(expire_key);
-                     lsm->remove(get_type_key(key));
-                     lsm->remove(key);
-                     //过期
-                     return "$-1\r\n";
-                   }
-         }
-         //无过期或没设置
-         return  "$"+std::to_string(key_quary.value().size())+"\r\n"+key_quary.value()+"\r\n";
-     }else {
-        //是否存在expire-time
-        if (auto expire_quary=lsm->get(expire_key)) {
-            rlock.unlock();
-            std::unique_lock wlock(redis_mtx);
-            // 移除expire——time
-            lsm->remove(expire_key);
-        }
-     }
+  if (type && *type != REDIS_TYPE_STRING) {
+    return REDIS_WRONGTYPE;
+  }
+  if (auto value = lsm->get(key)) {
+    return "$" + std::to_string(value->size()) + "\r\n" + *value + "\r\n";
+  }
   return "$-1\r\n"; // 表示键不存在
 }
 //del，ttl，expire要兼容不同类型，暂时先不改
 std::string RedisWrapper::redis_ttl(std::string &key) {
-  std::shared_lock rlock(redis_mtx);
-  if (!lsm->get(get_type_key(key))) {
-      return ":-2\r\n"; // TTL
-    // 或 ":0\r\n" for EXPIRE
-}
-     auto expire_key=get_explire_key(key);
-         if (auto expire_quary=lsm->get(expire_key)) {
-               time_t now_time{};
-               //判断是否是hash，否则要删除
-                   if (is_expired(expire_quary,&now_time)) {
-                     // 过期了也不删除, ttl这里设计为只读, 删除在之后进行
-                     // -2 表示 key 不存在或过期了
-                     return ":-2\r\n";
-                   }
-             return ":"+std::to_string(std::stoll(expire_quary.value())-now_time)+"\r\n";
-         }else {
-          //表示没有设置过期时间
-            return ":-1\r\n";
-         }
-     return  "$-1\r\n";
+  std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
+  if (!get_type_cached(key)) {
+    return ":-2\r\n";
+  }
+
+  if (auto expire_query = lsm->get(get_explire_key(key))) {
+    time_t now_time{};
+    if (is_expired(expire_query, &now_time)) {
+      return ":-2\r\n";
+    }
+    return ":" + std::to_string(std::stoll(*expire_query) - now_time) +
+           "\r\n";
+  }
+  return ":-1\r\n";
 }
 
 // 哈希操作
@@ -926,59 +810,50 @@ std::string RedisWrapper::redis_ttl(std::string &key) {
 std::string RedisWrapper::redis_hset_batch(
     const std::string &key,
    const std::vector<std::pair<std::string, std::string>> &field_value_pairs) {
+  std::unique_lock key_lock(key_mutex(key));
+  expire_clean_locked(key);
+  if (!check_or_create_type_locked(key, REDIS_TYPE_HASH)) {
+    return REDIS_WRONGTYPE;
+  }
+  load_hash_cache_locked(key);
 
-      std::shared_lock rlock(redis_mtx);
-      //是否有旧的key存在且过期
-    if (!expire_clean(key,rlock)) {
-        rlock.unlock();
-    }
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-       //上面判断是否过期，并不影响判断是否同命名空间
-      if (!check_or_create_type_unlocked(key,REDIS_TYPE_HASH)) {
-         return  REDIS_WRONGTYPE;
+  std::unordered_set<std::string> new_fields;
+  int64_t current_size = 0;
+  {
+    std::shared_lock cache_lock(hash_cache_mtx_);
+    const auto &fields = hash_field_cache_.at(key);
+    current_size = hash_size_cache_.at(key);
+    for (const auto &[field, value] : field_value_pairs) {
+      (void)value;
+      if (!fields.contains(field)) {
+        new_fields.emplace(field);
       }
-      // auto hash_filed_list=std::move(get_fileds_from_hash_value(lsm->get(key)));
-       //加载hash信息
-        load_hash_cache_unlocked(key);
-
-         auto& fields = hash_field_cache_[key];
-         auto& size = hash_size_cache_[key];
-          int added = 0;
-   //   int hash_count=0;
-  //  std::unordered_set<std::string> filed_list(hash_filed_list.begin(),hash_filed_list.end());
-  //  std::vector<std::pair<std::string,std::string>> value_list(1);
-  //  auto filed_pre=std::move(TomlConfig::getInstance().getRedisFieldPrefix() + key + "_");
-  //  for (auto& it:field_value_pairs) {
-  //     value_list.emplace_back(filed_pre+it.first,it.second);
-  //     if (!filed_list.contains(it.first)) {
-  //          ++hash_count;
-  //          //判断是否存在
-  //          filed_list.emplace(it.first);
-  //          hash_filed_list.emplace_back(it.first);
-  //     }
-  //  }
-  //  auto key_hash_value=std::move(get_hash_value_from_fields(hash_filed_list));
-  //  value_list[0]={key,key_hash_value};
-  //  lsm->put_batch(value_list);
-   std::vector<std::pair<std::string, std::string>> puts;
-
-  for (auto& [field, value] : field_value_pairs) {
-    if (fields.insert(field).second) {
-      ++added;
     }
-     //add是全部put，旧的刷新数据，新的加入fileds
+  }
+
+  const int added = static_cast<int>(new_fields.size());
+  const int64_t new_size = current_size + added;
+  std::vector<std::pair<std::string, std::string>> puts;
+  puts.reserve(field_value_pairs.size() + (added > 0 ? 1 : 0));
+  for (const auto &[field, value] : field_value_pairs) {
     puts.emplace_back(get_hash_filed_key(key, field), value);
   }
-
   if (added > 0) {
-    size += added;
-    puts.emplace_back(get_hash_size_key(key), std::to_string(size));
+    puts.emplace_back(get_hash_size_key(key), std::to_string(new_size));
   }
-
   if (!puts.empty()) {
     lsm->put_batch(puts);
   }
-   return ":"+std::to_string(added)+"\r\n";
+
+  {
+    std::unique_lock cache_lock(hash_cache_mtx_);
+    auto &fields = hash_field_cache_[key];
+    for (const auto &field : new_fields) {
+      fields.emplace(field);
+    }
+    hash_size_cache_[key] = new_size;
+  }
+  return ":" + std::to_string(added) + "\r\n";
 }
 //filed是动态增加
 std::string RedisWrapper::redis_hset(const std::string &key,
@@ -1029,155 +904,104 @@ return redis_hset_batch(key,{std::make_pair(field, value)});
 
 std::string RedisWrapper::redis_hget(const std::string &key,
                                      const std::string &field) {
-    std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-    //是否有旧的key存在且过期
-    if (expire_clean(key,rlock)) {
-         return "$-1\r\n";
-    }
-   // std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-     //检查类型
-  auto type = std::move(lsm->get(get_type_key(key)));
-if (type && type.value() != REDIS_TYPE_HASH) {
-  return REDIS_WRONGTYPE;
-}
-    //key存在
-    auto filed_key=std::move(get_hash_filed_key(key,field));
-    if (auto value=std::move(lsm->get(filed_key))) {
-      return "$"+std::to_string(value->size())+"\r\n"+value.value()+"\r\n";
-    }
-   return "$-1\r\n";
+  std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
+  if (expire_clean(key, key_lock)) {
+    return "$-1\r\n";
+  }
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_HASH) {
+    return REDIS_WRONGTYPE;
+  }
+  if (auto value = lsm->get(get_hash_filed_key(key, field))) {
+    return "$" + std::to_string(value->size()) + "\r\n" + *value + "\r\n";
+  }
+  return "$-1\r\n";
 }
 
 std::string RedisWrapper::redis_hdel(const std::string &key,
                                      const std::string &field) {
-     std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-     //是否有旧的key存在且过期
-    if (expire_clean(key,rlock)) {
-         return ":0\r\n";
-    }
-      //检查类型
-    auto type = std::move(lsm->get(get_type_key(key)));
-    if (type && type.value() != REDIS_TYPE_HASH) {
-      return REDIS_WRONGTYPE;
-    }
-    rlock.unlock();
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-    //获取hash
-    load_hash_cache_unlocked(key);
-    auto& fields = hash_field_cache_[key];
-    auto it = fields.find(field);
-
-  if (it == fields.end()) {
+  std::unique_lock key_lock(key_mutex(key));
+  if (expire_clean_locked(key)) {
     return ":0\r\n";
   }
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_HASH) {
+    return REDIS_WRONGTYPE;
+  }
+  if (!type) {
+    return ":0\r\n";
+  }
+  load_hash_cache_locked(key);
 
-  fields.erase(it);
-  auto& size = hash_size_cache_[key];
-  --size;
+  int64_t new_size = 0;
+  {
+    std::shared_lock cache_lock(hash_cache_mtx_);
+    const auto &fields = hash_field_cache_.at(key);
+    if (!fields.contains(field)) {
+      return ":0\r\n";
+    }
+    new_size = hash_size_cache_.at(key) - 1;
+  }
 
   std::vector<std::string> removes;
   removes.emplace_back(get_hash_filed_key(key, field));
-   //0则清理
-  if (size == 0) {
+  if (new_size == 0) {
     removes.emplace_back(get_hash_size_key(key));
     removes.emplace_back(get_type_key(key));
     removes.emplace_back(get_explire_key(key));
-    erase_key_cache_unlocked(key);
   } else {
-    lsm->put(get_hash_size_key(key), std::to_string(size));
+    lsm->put(get_hash_size_key(key), std::to_string(new_size));
   }
-
   lsm->remove_batch(removes);
-    return ":1\r\n";
-    // auto key_value = std::move(lsm->get(key));
-    // if (!key_value) {
-    //   return "$-1\r\n";
-    // }
-    // auto field_list=std::move(get_fileds_from_hash_value(key_value));
-   
-    // //返回值是
-    // auto pos=std::find(field_list.begin(),field_list.end(),field);
-    // //filed存在
-    // if (pos!=field_list.end()) {
-    //   field_list.erase(pos);
-    //    rlock.unlock();
-    //   std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-    //   if (field_list.empty()) {
-    //     lsm->remove_batch({key,get_type_key(key),
-    //        get_explire_key(key),get_hash_filed_key(key, field)});
-    //   }else {
-    //   auto key_hash = get_hash_value_from_fields(field_list);
-     
-    //   lsm->put_batch(
-    //       {{key, key_hash}, {get_hash_filed_key(key, field), ""}});
-    //   }
-    //   // auto key_hash = get_hash_value_from_fields(field_list);
-     
-    //   // lsm->put_batch(
-    //   //     {{key, key_hash}, {get_hash_filed_key(key, field), ""}});
-    //   return ":1\r\n";
-    // }
-     
-
+  if (new_size == 0) {
+    erase_key_cache(key);
+  } else {
+    std::unique_lock cache_lock(hash_cache_mtx_);
+    hash_field_cache_[key].erase(field);
+    hash_size_cache_[key] = new_size;
+  }
+  return ":1\r\n";
 }
 //返回所有failed
 std::string RedisWrapper::redis_hkeys(const std::string &key) {
-      std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-      //是否有旧的key存在且过期
-    if (expire_clean(key,rlock)) {
-         return "*0\r\n";
-    }
-       //检查类型
-    auto type = std::move(lsm->get(get_type_key(key)));
-    if (type && type.value() != REDIS_TYPE_HASH) {
-      return REDIS_WRONGTYPE;
-    }
+  std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
+  if (expire_clean(key, key_lock)) {
+    return "*0\r\n";
+  }
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_HASH) {
+    return REDIS_WRONGTYPE;
+  }
+  if (!type) {
+    return "*0\r\n";
+  }
 
-     rlock.unlock();
-     std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-     if (!type) {
-       return "*0\r\n";
-     }
-     if (!check_or_create_type_unlocked(key, REDIS_TYPE_HASH)) {
-       return REDIS_WRONGTYPE;
-     }
+  load_hash_cache_locked(key);
+  std::vector<std::string> fields;
+  {
+    std::shared_lock cache_lock(hash_cache_mtx_);
+    const auto &cached_fields = hash_field_cache_.at(key);
+    fields.assign(cached_fields.begin(), cached_fields.end());
+  }
+  std::sort(fields.begin(), fields.end());
 
-     load_hash_cache_unlocked(key);
-
-     auto &fields = hash_field_cache_[key];
-
-     std::string res = "*" + std::to_string(fields.size()) + "\r\n";
-     for (const auto &field : fields) {
-       res += "$" + std::to_string(field.size()) + "\r\n" + field + "\r\n";
-     }
-
-     return res;
-     //   auto key_value=std::move(lsm->get(key));
-     //  if (!key_value) {
-     //    return "$-1\r\n";
-     //  }
-     // auto field_list=std::move(get_fileds_from_hash_value(key_value));
-     // std::string ans("*"+std::to_string(field_list.size())+"\r\n");
-     // for(auto& it:field_list){
-     //     ans+="$"+std::to_string(it.size())+"\r\n"+it+"\r\n";
-     // }
-     // return ans;
+  std::string result = "*" + std::to_string(fields.size()) + "\r\n";
+  for (const auto &field : fields) {
+    result += "$" + std::to_string(field.size()) + "\r\n" + field + "\r\n";
+  }
+  return result;
 }
 
 // 链表操作
 //返回 list 当前长度
 std::string RedisWrapper::redis_lpush(const std::string &key,
                                       const std::string &value) {
-    std::shared_lock rlock(redis_mtx);
-    if (!expire_clean(key,rlock)) {
-        rlock.unlock();
+    std::unique_lock key_lock(key_mutex(key));
+    expire_clean_locked(key);
+    if (!check_or_create_type_locked(key, REDIS_TYPE_LIST)) {
+      return REDIS_WRONGTYPE;
     }
     auto list_seq=lsm->get(get_list_key_prefix(key));
-    std::unique_lock wlock(redis_mtx);
-     //上面判断是否过期，并不影响判断是否同命名空间
-      if (!check_or_create_type_unlocked(key,REDIS_TYPE_LIST)) {
-         return  REDIS_WRONGTYPE;
-      }
     std::vector<std::pair<std::string,std::string>> tmp;
     int count=0;
     if (list_seq) {
@@ -1198,16 +1022,12 @@ std::string RedisWrapper::redis_lpush(const std::string &key,
 
 std::string RedisWrapper::redis_rpush(const std::string &key,
                                       const std::string &value) {
-  std::shared_lock rlock(redis_mtx);
-    if (!expire_clean(key,rlock)) {
-        rlock.unlock();
+    std::unique_lock key_lock(key_mutex(key));
+    expire_clean_locked(key);
+    if (!check_or_create_type_locked(key, REDIS_TYPE_LIST)) {
+      return REDIS_WRONGTYPE;
     }
     auto list_seq=lsm->get(get_list_key_prefix(key));
-    std::unique_lock wlock(redis_mtx);
-     //上面判断是否过期，并不影响判断是否同命名空间
-      if (!check_or_create_type_unlocked(key,REDIS_TYPE_LIST)) {
-         return  REDIS_WRONGTYPE;
-      }
     std::vector<std::pair<std::string,std::string>> tmp;
     int count=0;
     if (list_seq) {
@@ -1227,21 +1047,19 @@ std::string RedisWrapper::redis_rpush(const std::string &key,
 }
 
 std::string RedisWrapper::redis_lpop(const std::string &key) {
-  std::shared_lock rlock(redis_mtx);
-  //是否有旧的key存在且过期
-    if (expire_clean(key,rlock)) {
-          return "$-1\r\n";
-    }
-     rlock.unlock();
-     std::unique_lock wlock(redis_mtx);
-  const auto& type = lsm->get(get_type_key(key));
-if (type && type.value() != REDIS_TYPE_LIST) {
-  return REDIS_WRONGTYPE;
-}
+  std::unique_lock key_lock(key_mutex(key));
+  if (expire_clean_locked(key)) {
+    return "$-1\r\n";
+  }
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_LIST) {
+    return REDIS_WRONGTYPE;
+  }
     auto list_seq=lsm->get(get_list_key_prefix(key));
     
     std::vector<std::pair<std::string,std::string>> tmp;
     std::string value;
+    bool became_empty = false;
     // int ans;
     if (list_seq) {
         auto seq=get_list_key_seq(list_seq.value());
@@ -1256,25 +1074,26 @@ if (type && type.value() != REDIS_TYPE_LIST) {
           tmp.emplace_back(get_list_key_prefix(key),"");
            tmp.emplace_back(get_type_key(key),"");
             tmp.emplace_back(get_explire_key(key),"");
+          became_empty = true;
         }
     }else {
        return "$-1\r\n";
     }
    lsm->put_batch(tmp);
+   if (became_empty) {
+     erase_key_cache(key);
+   }
    //return ":"+std::to_string(ans-1)+"\r\n";
    return "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n";
 }
 
 std::string RedisWrapper::redis_rpop(const std::string &key) {
-  std::shared_lock rlock(redis_mtx);
-   //是否有旧的key存在且过期
-    if (expire_clean(key,rlock)) {
-          return "$-1\r\n";
-    }
-     rlock.unlock();
-     std::unique_lock wlock(redis_mtx);
-  const auto &type = lsm->get(get_type_key(key));
-  if (type && type.value() != REDIS_TYPE_LIST) {
+  std::unique_lock key_lock(key_mutex(key));
+  if (expire_clean_locked(key)) {
+    return "$-1\r\n";
+  }
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_LIST) {
     return REDIS_WRONGTYPE;
   }
    
@@ -1282,6 +1101,7 @@ std::string RedisWrapper::redis_rpop(const std::string &key) {
     std::vector<std::pair<std::string,std::string>> tmp;
     //int ans;
     std::string value;
+    bool became_empty = false;
     if (list_seq) {
         auto seq=get_list_key_seq(list_seq.value());
          auto stop=std::stoull(seq.second);
@@ -1295,25 +1115,29 @@ std::string RedisWrapper::redis_rpop(const std::string &key) {
            tmp.emplace_back(get_list_key_prefix(key),"");
            tmp.emplace_back(get_type_key(key),"");
             tmp.emplace_back(get_explire_key(key),"");
+           became_empty = true;
         }
     }else {
        return "$-1\r\n";
     }
    lsm->put_batch(tmp);
+   if (became_empty) {
+     erase_key_cache(key);
+   }
    //return ":"+std::to_string(ans-1)+"\r\n";
    return "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n";
 }
 
 std::string RedisWrapper::redis_llen(const std::string &key) {
-    std::shared_lock rlock(redis_mtx);
+    std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
     
      //是否有旧的key存在且过期
-    if (expire_clean(key,rlock)) {
+    if (expire_clean(key,key_lock)) {
           return ":0\r\n";
     }
     
-    const auto &type = lsm->get(get_type_key(key));
-  if (type && type.value() != REDIS_TYPE_LIST) {
+    auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_LIST) {
     return REDIS_WRONGTYPE;
   }
    
@@ -1328,13 +1152,16 @@ std::string RedisWrapper::redis_llen(const std::string &key) {
 
 std::string RedisWrapper::redis_lrange(const std::string &key, int start,
                                        int stop) {
-  std::shared_lock rlock(redis_mtx);
-  if (expire_clean(key, rlock)) {
+  std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
+  if (expire_clean(key, key_lock)) {
    return "*0\r\n";
   }
-  const auto &type = lsm->get(get_type_key(key));
-  if (type && type.value() != REDIS_TYPE_LIST) {
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_LIST) {
     return REDIS_WRONGTYPE;
+  }
+  if (!type) {
+    return "*0\r\n";
   }
     
     auto list_seq=lsm->get(get_list_key_prefix(key));
@@ -1342,6 +1169,9 @@ std::string RedisWrapper::redis_lrange(const std::string &key, int start,
     auto list_quary=std::move(lsm->lsm_iters_monotony_predicate(0,[&list_pre](const std::string& key){
             return  -key.compare(0,list_pre.size(),list_pre);
     }));
+  if (!list_quary) {
+    return "*0\r\n";
+  }
   // int count=0;
   std::vector<std::pair<std::string,std::string>> sort;
   std::string ans;
@@ -1400,62 +1230,60 @@ std::string RedisWrapper::redis_lrange(const std::string &key, int start,
 // }
 //socre elem...
 std::string RedisWrapper::redis_zadd(std::vector<std::string> &args) {
-     std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-     //是否有旧的key存在且过期
-    if (!expire_clean(args[1],rlock)) {
-        rlock.unlock();
-    }
-     std::unique_lock wlock(redis_mtx);
-    //上面判断是否过期，并不影响判断是否同命名空间
-      if (!check_or_create_type_unlocked(args[1],REDIS_TYPE_ZSET)) {
-         return  REDIS_WRONGTYPE;
-      }
-
-    // auto key_pre = std::move(get_zset_key_preffix(args[1]));
-    // std::vector<std::pair<std::string,std::string>> put_z;
-    // std::vector<std::string> get_el;
-    // auto el_pre=std::move(get_zset_elem_preffix(args[1]));
     if ((args.size() - 2) % 2 != 0) {
-           return REDIS_WRONGTYPE;
+      return REDIS_WRONGTYPE;
     }
-    load_zset_cache_unlocked(args[1]);
 
-    auto &elem_scores = zset_elem_score_cache_[args[1]];
-    auto &size = zset_size_cache_[args[1]];
+    const std::string &key = args[1];
+    std::unique_lock key_lock(key_mutex(key));
+    expire_clean_locked(key);
+    if (!check_or_create_type_locked(key, REDIS_TYPE_ZSET)) {
+      return REDIS_WRONGTYPE;
+    }
+    load_zset_cache_locked(key);
 
-    std::vector<std::pair<std::string, std::string>> put_z;
+    std::unordered_map<std::string, std::string> final_scores;
+    for (size_t i = 2; i < args.size(); i += 2) {
+      final_scores[args[i + 1]] = args[i];
+    }
+
     int added = 0;
-
-    for (int i = 2; i < args.size(); i += 2) {
-      const auto &score = args[i];
-      const auto &elem = args[i + 1];
-
-      auto it = elem_scores.find(elem);
-
-      if (it == elem_scores.end()) {
-        ++added;
-        elem_scores.emplace(elem, score);
-        // put_z.emplace_back(get_zset_key_elem(args[1], elem), score);
-        // put_z.emplace_back(get_zset_key_socre(args[1], score, elem), elem);
-      } else if (it->second != score) {
-        //旧的socre与新的不同名要删除
-        put_z.emplace_back(get_zset_key_socre(args[1], it->second, elem), "");
-        it->second = score;
+    int64_t current_size = 0;
+    std::vector<std::pair<std::string, std::string>> put_z;
+    {
+      std::shared_lock cache_lock(zset_cache_mtx_);
+      const auto &cached_scores = zset_elem_score_cache_.at(key);
+      current_size = zset_size_cache_.at(key);
+      for (const auto &[elem, score] : final_scores) {
+        auto it = cached_scores.find(elem);
+        if (it == cached_scores.end()) {
+          ++added;
+        } else if (it->second != score) {
+          put_z.emplace_back(get_zset_key_socre(key, it->second, elem), "");
+        }
       }
-      //不管新旧，直接刷入新数据
-      put_z.emplace_back(get_zset_key_elem(args[1], elem), score);
-        put_z.emplace_back(get_zset_key_socre(args[1], score, elem), elem);
     }
 
+    const int64_t new_size = current_size + added;
+    for (const auto &[elem, score] : final_scores) {
+      put_z.emplace_back(get_zset_key_elem(key, elem), score);
+      put_z.emplace_back(get_zset_key_socre(key, score, elem), elem);
+    }
+    if (added > 0) {
+      put_z.emplace_back(get_zset_key_preffix(key), std::to_string(new_size));
+    }
     if (!put_z.empty()) {
-      if (added > 0) {
-        size += added;
-        put_z.emplace_back(get_zset_key_preffix(args[1]), std::to_string(size));
-      }
-
       lsm->put_batch(put_z);
     }
 
+    {
+      std::unique_lock cache_lock(zset_cache_mtx_);
+      auto &cached_scores = zset_elem_score_cache_[key];
+      for (const auto &[elem, score] : final_scores) {
+        cached_scores[elem] = score;
+      }
+      zset_size_cache_[key] = new_size;
+    }
     return ":" + std::to_string(added) + "\r\n";
     //   int n=args.size();
     // std::unordered_map<std::string, std::string> new_scores;
@@ -1494,65 +1322,63 @@ std::string RedisWrapper::redis_zadd(std::vector<std::string> &args) {
 }
 
 std::string RedisWrapper::redis_zrem(std::vector<std::string> &args) {
-    std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-  // 过期
-   //是否有旧的key存在且过期
-    if (expire_clean(args[1],rlock)) {
-        return ":0\r\n";
-    }
-    // std::unique_lock wlock(redis_mtx);
-   //auto key_pre = std::move(get_set_member_prefix(args[1]));
-  const auto& type = lsm->get(get_type_key(args[1]));
-  if (type && type.value() != REDIS_TYPE_ZSET) {
+  const std::string &key = args[1];
+  std::unique_lock key_lock(key_mutex(key));
+  if (expire_clean_locked(key)) {
+    return ":0\r\n";
+  }
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_ZSET) {
     return REDIS_WRONGTYPE;
   }
   if (!type) {
     return ":0\r\n";
   }
+  load_zset_cache_locked(key);
 
-  rlock.unlock();
-  std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-  //加载zset
-    load_zset_cache_unlocked(args[1]);
+  std::unordered_map<std::string, std::string> removed_scores;
+  int64_t current_size = 0;
+  {
+    std::shared_lock cache_lock(zset_cache_mtx_);
+    const auto &elem_scores = zset_elem_score_cache_.at(key);
+    current_size = zset_size_cache_.at(key);
+    for (size_t i = 2; i < args.size(); ++i) {
+      auto it = elem_scores.find(args[i]);
+      if (it != elem_scores.end()) {
+        removed_scores.emplace(it->first, it->second);
+      }
+    }
+  }
 
-  auto a_s = args.size();
-  auto& elem_scores = zset_elem_score_cache_[args[1]];
-  auto& size = zset_size_cache_[args[1]];
-
+  const int removed = static_cast<int>(removed_scores.size());
+  if (removed == 0) {
+    return ":0\r\n";
+  }
+  const int64_t new_size = current_size - removed;
   std::vector<std::string> remove_keys;
-  int removed = 0;
-
-  for (int i = 2; i < a_s; ++i) {
-    const auto& elem = args[i];
-    auto it = elem_scores.find(elem);
-
-    if (it == elem_scores.end()) {
-      continue;
-    }
-
-    remove_keys.emplace_back(get_zset_key_elem(args[1], elem));
-    remove_keys.emplace_back(get_zset_key_socre(args[1], it->second, elem));
-
-    elem_scores.erase(it);
-    ++removed;
+  for (const auto &[elem, score] : removed_scores) {
+    remove_keys.emplace_back(get_zset_key_elem(key, elem));
+    remove_keys.emplace_back(get_zset_key_socre(key, score, elem));
   }
-
-  if (removed > 0) {
-    //引用修改
-    size -= removed;
-
-    if (size == 0) {
-      remove_keys.emplace_back(get_zset_key_preffix(args[1]));
-      remove_keys.emplace_back(get_explire_key(args[1]));
-      remove_keys.emplace_back(get_type_key(args[1]));
-      erase_key_cache_unlocked(args[1]);
-    } else {
-      lsm->put(get_zset_key_preffix(args[1]), std::to_string(size));
-    }
-
-    lsm->remove_batch(remove_keys);
+  if (new_size == 0) {
+    remove_keys.emplace_back(get_zset_key_preffix(key));
+    remove_keys.emplace_back(get_explire_key(key));
+    remove_keys.emplace_back(get_type_key(key));
+  } else {
+    lsm->put(get_zset_key_preffix(key), std::to_string(new_size));
   }
-
+  lsm->remove_batch(remove_keys);
+  if (new_size == 0) {
+    erase_key_cache(key);
+  } else {
+    std::unique_lock cache_lock(zset_cache_mtx_);
+    auto &elem_scores = zset_elem_score_cache_[key];
+    for (const auto &[elem, score] : removed_scores) {
+      (void)score;
+      elem_scores.erase(elem);
+    }
+    zset_size_cache_[key] = new_size;
+  }
   return ":" + std::to_string(removed) + "\r\n";
   // int count = 0;
   // std::vector<std::string> add_ve;
@@ -1616,20 +1442,26 @@ std::string RedisWrapper::redis_zrem(std::vector<std::string> &args) {
 //0 -1 或者 ZRANGE key min max BYSCORE默认闭区间
 //rev逆序，开区间的附加不实现
 std::string RedisWrapper::redis_zrange(std::vector<std::string> &args) {
-    std::shared_lock<std::shared_mutex> rlock(redis_mtx);
+    std::shared_lock<std::shared_mutex> key_lock(key_mutex(args[1]));
      //是否有旧的key存在且过期
-    if (expire_clean(args[1], rlock)) {
+    if (expire_clean(args[1], key_lock)) {
             return "*0\r\n";
     }
-    const auto& type = lsm->get(get_type_key(args[1]));
-if (type && type.value() != REDIS_TYPE_ZSET) {
+    auto type = get_type_cached(args[1]);
+if (type && *type != REDIS_TYPE_ZSET) {
   return REDIS_WRONGTYPE;
 }
+  if (!type) {
+    return "*0\r\n";
+  }
  
   auto score_pre=get_zset_score_preffix(args[1]);
   auto score_quary=std::move(lsm->lsm_iters_monotony_predicate(0,[&score_pre](const std::string& key){
         return -key.compare(0,score_pre.size(),score_pre);
   }));
+  if (!score_quary) {
+    return "*0\r\n";
+  }
   //负数表示从尾部倒数
   int first=std::stoi(args[2]);
   int last=std::stoi(args[3]);
@@ -1689,26 +1521,25 @@ if (type && type.value() != REDIS_TYPE_ZSET) {
 };
 
 std::string RedisWrapper::redis_zcard(const std::string &key) {
-     std::shared_lock<std::shared_mutex> rlock(redis_mtx);
+     std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
       //是否有旧的key存在且过期
-      if (expire_clean(key,rlock)) {
+      if (expire_clean(key,key_lock)) {
        return ":0\r\n";
       }
-     const auto &type = lsm->get(get_type_key(key));
-     if (type && type.value() != REDIS_TYPE_ZSET) {
+     auto type = get_type_cached(key);
+     if (type && *type != REDIS_TYPE_ZSET) {
        return REDIS_WRONGTYPE;
      }
   if (!type) {
     return ":0\r\n";
   }
 
-  rlock.unlock();
-  std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-
-  load_zset_cache_unlocked(key);
- if (zset_size_cache_.contains(key)) {
-       return ":" + std::to_string(zset_size_cache_[key]) + "\r\n";
- }
+  load_zset_cache_locked(key);
+  std::shared_lock cache_lock(zset_cache_mtx_);
+  auto size_it = zset_size_cache_.find(key);
+  if (size_it != zset_size_cache_.end()) {
+    return ":" + std::to_string(size_it->second) + "\r\n";
+  }
   // //无特殊情况，不会出现非过期但是无数量
   //  if (auto set_quary=lsm->get(get_zset_key_preffix(key))) {
   //        return ":" + set_quary.value() + "\r\n";
@@ -1719,31 +1550,31 @@ std::string RedisWrapper::redis_zcard(const std::string &key) {
 
 std::string RedisWrapper::redis_zscore(const std::string &key,
                                        const std::string &elem) {
- std::shared_lock<std::shared_mutex> rlock(redis_mtx);
+ std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
  //是否有旧的key存在且过期
- if (expire_clean(key, rlock)) {
+ if (expire_clean(key, key_lock)) {
    return "$-1\r\n";
  }
- const auto &type = lsm->get(get_type_key(key));
- if (type && type.value() != REDIS_TYPE_ZSET) {
+ auto type = get_type_cached(key);
+ if (type && *type != REDIS_TYPE_ZSET) {
    return REDIS_WRONGTYPE;
  }
  //代表没有key
  if (!type) {
    return "$-1\r\n";
  }
-  rlock.unlock();
-  std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-
-  load_zset_cache_unlocked(key);
+  load_zset_cache_locked(key);
   // //无特殊情况，不会出现非过期但是无数量
   //  if (auto set_quary=lsm->get(get_zset_key_elem(key,elem))) {
   //        return "$" + std::to_string(set_quary.value().size()) + "\r\n" + set_quary.value() + "\r\n";
   //  }
-  if (zset_elem_score_cache_.contains(key)) {
-    auto& elem_scores = zset_elem_score_cache_[key];
-    if (elem_scores.contains(elem)) {
-        return "$" + std::to_string(elem_scores[elem].size()) + "\r\n" + elem_scores[elem]+ "\r\n";
+  std::shared_lock cache_lock(zset_cache_mtx_);
+  auto cache_it = zset_elem_score_cache_.find(key);
+  if (cache_it != zset_elem_score_cache_.end()) {
+    auto score_it = cache_it->second.find(elem);
+    if (score_it != cache_it->second.end()) {
+      return "$" + std::to_string(score_it->second.size()) + "\r\n" +
+             score_it->second + "\r\n";
     }
   }
     return "$-1\r\n";
@@ -1753,45 +1584,47 @@ std::string RedisWrapper::redis_zscore(const std::string &key,
 std::string RedisWrapper::redis_zincrby(const std::string &key,
                                         const std::string &increment,
                                         const std::string &elem) {
-    std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-     //是否有旧的key存在且过期
-      if (!expire_clean(key,rlock)) {
-          rlock.unlock();
-      }
-      std::unique_lock wlock(redis_mtx);
-      if (!check_or_create_type_unlocked(key, REDIS_TYPE_ZSET)) {
+      std::unique_lock key_lock(key_mutex(key));
+      expire_clean_locked(key);
+      if (!check_or_create_type_locked(key, REDIS_TYPE_ZSET)) {
         return REDIS_WRONGTYPE;
       }
-     load_zset_cache_unlocked(key);
-
-     auto &elem_scores = zset_elem_score_cache_[key];
-     auto &size = zset_size_cache_[key];
+     load_zset_cache_locked(key);
 
      std::vector<std::pair<std::string, std::string>> put_z;
      std::string new_score;
+     std::optional<std::string> old_score;
+     int64_t current_size = 0;
+     {
+       std::shared_lock cache_lock(zset_cache_mtx_);
+       const auto &elem_scores = zset_elem_score_cache_.at(key);
+       auto it = elem_scores.find(elem);
+       if (it != elem_scores.end()) {
+         old_score = it->second;
+       }
+       current_size = zset_size_cache_.at(key);
+     }
 
-     auto it = elem_scores.find(elem);
-
-     if (it == elem_scores.end()) {
-      //不存在则新建
+     const bool added = !old_score.has_value();
+     const int64_t new_size = current_size + (added ? 1 : 0);
+     if (added) {
        new_score = increment;
-       elem_scores.emplace(elem, new_score);
-       ++size;
-
-       put_z.emplace_back(get_zset_key_preffix(key), std::to_string(size));
+       put_z.emplace_back(get_zset_key_preffix(key), std::to_string(new_size));
      } else {
-       //修改
-       new_score = std::to_string(std::stoi(it->second) + std::stoi(increment));
-       //旧score的key要删除
-       put_z.emplace_back(get_zset_key_socre(key, it->second, elem), "");
-       it->second = new_score;
+       new_score =
+           std::to_string(std::stoi(*old_score) + std::stoi(increment));
+       put_z.emplace_back(get_zset_key_socre(key, *old_score, elem), "");
      }
 
      put_z.emplace_back(get_zset_key_elem(key, elem), new_score);
      put_z.emplace_back(get_zset_key_socre(key, new_score, elem), elem);
 
      lsm->put_batch(put_z);
-
+     {
+       std::unique_lock cache_lock(zset_cache_mtx_);
+       zset_elem_score_cache_[key][elem] = new_score;
+       zset_size_cache_[key] = new_size;
+     }
      return ":" + new_score + "\r\n";
      //   //过期清理后，或者没有key
      //   if (const auto&
@@ -1832,21 +1665,27 @@ std::string RedisWrapper::redis_zincrby(const std::string &key,
 
 std::string RedisWrapper::redis_zrank(const std::string &key,
                                       const std::string &elem) {
-    std::shared_lock<std::shared_mutex> rlock(redis_mtx);
+    std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
      //是否有旧的key存在且过期
-      if (expire_clean(key,rlock)) {
+      if (expire_clean(key,key_lock)) {
         return "$-1\r\n";
       }
      // std::unique_lock wlock(redis_mtx);
-    const auto &type = lsm->get(get_type_key(key));
-    if (type && type.value() != REDIS_TYPE_ZSET) {
+    auto type = get_type_cached(key);
+    if (type && *type != REDIS_TYPE_ZSET) {
       return REDIS_WRONGTYPE;
+    }
+    if (!type) {
+      return "$-1\r\n";
     }
  
   auto score_pre=get_zset_score_preffix(key);
   auto set_quary=std::move(lsm->lsm_iters_monotony_predicate(0,[&score_pre](const std::string key){
         return  -key.compare(0,score_pre.size(),score_pre);
   }));
+  if (!set_quary) {
+    return "$-1\r\n";
+  }
   int seq=0;
   bool is_exit=false;
    auto begin=std::move(set_quary->first);
@@ -1866,114 +1705,116 @@ std::string RedisWrapper::redis_zrank(const std::string &key,
 }
 
 std::string RedisWrapper::redis_sadd(std::vector<std::string> &args) {
-         std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-          //auto key_pre = std::move(get_set_member_prefix(args[1]));
-         //过期，但是新add就是创造新set'
-         if (!expire_clean(args[1], rlock)) {
-               rlock.unlock();
-         }
-          
-          std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-          //上面判断是否过期，并不影响判断是否同命名空间
-      if (!check_or_create_type_unlocked(args[1],REDIS_TYPE_SET)) {
-         return  REDIS_WRONGTYPE;
+  const std::string &key = args[1];
+  std::unique_lock key_lock(key_mutex(key));
+  expire_clean_locked(key);
+  if (!check_or_create_type_locked(key, REDIS_TYPE_SET)) {
+    return REDIS_WRONGTYPE;
+  }
+  load_set_cache_locked(key);
+
+  std::unordered_set<std::string> new_members;
+  int64_t current_size = 0;
+  {
+    std::shared_lock cache_lock(set_cache_mtx_);
+    const auto &members = set_member_cache_.at(key);
+    current_size = set_size_cache_.at(key);
+    for (size_t i = 2; i < args.size(); ++i) {
+      if (!members.contains(args[i])) {
+        new_members.emplace(args[i]);
       }
-      //加载key的信息
-        load_set_cache_unlocked(args[1]);
-        //key的set和大小
-        auto& members = set_member_cache_[args[1]];
-        auto& size = set_size_cache_[args[1]];
+    }
+  }
 
-        auto a_s=args.size(); 
-        int count=0;
+  const int count = static_cast<int>(new_members.size());
+  const int64_t new_size = current_size + count;
+  if (count > 0) {
+    std::vector<std::pair<std::string, std::string>> puts;
+    puts.reserve(new_members.size() + 1);
+    const auto member_prefix = get_set_member_prefix(key);
+    for (const auto &member : new_members) {
+      puts.emplace_back(member_prefix + member, get_set_member_value());
+    }
+    puts.emplace_back(get_set_key_preffix(key), std::to_string(new_size));
+    lsm->put_batch(puts);
 
-       std::vector<std::pair<std::string,std::string>> put_ve;
-        auto key_pre=std::move(get_set_member_prefix(args[1]));
-       //筛选出新增加的
-        for (int i = 2; i < args.size(); ++i) {
-          //还要插入新成员，因此不用contain
-          if (members.insert(args[i]).second) {
-            ++count;
-            put_ve.emplace_back(key_pre + args[i], get_set_member_value());
-          }
-        }
-
-        //更改数量，即使为新建，size的初始为0
-        // auto key_size=lsm->get(key_pre);
-        if (count > 0) {
-          size += count;
-          put_ve.emplace_back(get_set_key_preffix(args[1]),
-                              std::to_string(size));
-          lsm->put_batch(put_ve);
-        }
-       
-        return ":"+std::to_string(count)+"\r\n";
-
+    std::unique_lock cache_lock(set_cache_mtx_);
+    auto &members = set_member_cache_[key];
+    members.insert(new_members.begin(), new_members.end());
+    set_size_cache_[key] = new_size;
+  }
+  return ":" + std::to_string(count) + "\r\n";
 }
 
 std::string RedisWrapper::redis_srem(std::vector<std::string> &args) {
-  std::shared_lock<std::shared_mutex> rlock(redis_mtx);
-  // 过期
-   //auto key_pre = std::move(get_set_member_prefix(args[1]));
-    //是否有旧的key存在且过期
-      if (expire_clean(args[1],rlock)) {
-       return ":0\r\n";
-      }
-      //std::unique_lock wlock(redis_mtx);
-  const auto &type = lsm->get(get_type_key(args[1]));
-  if (type && type.value() != REDIS_TYPE_SET) {
+  const std::string &key = args[1];
+  std::unique_lock key_lock(key_mutex(key));
+  if (expire_clean_locked(key)) {
+    return ":0\r\n";
+  }
+  auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_SET) {
     return REDIS_WRONGTYPE;
   }
-  
-  
-  auto a_s = args.size();
-  int count = 0;
-  std::vector<std::string> add_ve;
-  auto key_pre = std::move(get_set_key_preffix(args[1]));
-  //set memtable,不存在或为0直接返回
-  auto key_size=std::move(lsm->get(key_pre));
-   if (!key_size||std::stoi(key_size.value())==0) {
-          return ":0\r\n";
-   }
-  // 一次性把所有都拿出
-  for (int i = 2; i < a_s; ++i) {
-    add_ve.emplace_back(key_pre+args[i]);
+  if (!type) {
+    return ":0\r\n";
   }
-  //装载要删除的key
-  auto set_quary = std::move(lsm->get_batch(add_ve));
-    add_ve={};
-   for (auto& it : set_quary) {
-           //有则删除
-            if (it.second) {
-               ++count;
-              add_ve.emplace_back(it.first);
-            }
-        }
-    // count=std::stoi(key_size.value())-count;
-     //删除set
-     rlock.unlock();
-     std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-     if (std::stoi(key_size.value())-count==0) {
-         add_ve.emplace_back(get_set_key_preffix(args[1]));
-         add_ve.emplace_back(get_type_key(args[1]));
-     }else {
-        lsm->put(get_set_key_preffix(args[1]),std::to_string(std::stoi(key_size.value())-count));
-     }
-    //  rlock.unlock();
-    //  std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-     lsm->remove_batch(add_ve);
-     return  ":"+std::to_string(count)+"\r\n";
+  load_set_cache_locked(key);
+
+  std::unordered_set<std::string> removed_members;
+  int64_t current_size = 0;
+  {
+    std::shared_lock cache_lock(set_cache_mtx_);
+    const auto &members = set_member_cache_.at(key);
+    current_size = set_size_cache_.at(key);
+    for (size_t i = 2; i < args.size(); ++i) {
+      if (members.contains(args[i])) {
+        removed_members.emplace(args[i]);
+      }
+    }
+  }
+
+  const int count = static_cast<int>(removed_members.size());
+  if (count == 0) {
+    return ":0\r\n";
+  }
+  const int64_t new_size = current_size - count;
+  std::vector<std::string> remove_keys;
+  remove_keys.reserve(removed_members.size() + 3);
+  for (const auto &member : removed_members) {
+    remove_keys.emplace_back(get_set_member_key(key, member));
+  }
+  if (new_size == 0) {
+    remove_keys.emplace_back(get_set_key_preffix(key));
+    remove_keys.emplace_back(get_type_key(key));
+    remove_keys.emplace_back(get_explire_key(key));
+  } else {
+    lsm->put(get_set_key_preffix(key), std::to_string(new_size));
+  }
+  lsm->remove_batch(remove_keys);
+
+  if (new_size == 0) {
+    erase_key_cache(key);
+  } else {
+    std::unique_lock cache_lock(set_cache_mtx_);
+    auto &members = set_member_cache_[key];
+    for (const auto &member : removed_members) {
+      members.erase(member);
+    }
+    set_size_cache_[key] = new_size;
+  }
+  return ":" + std::to_string(count) + "\r\n";
 }
 
 std::string RedisWrapper::redis_sismember(const std::string &key,
                                           const std::string &member) {
-     std::shared_lock<std::shared_mutex> rlock(redis_mtx);
+     std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
       //是否有旧的key存在且过期
-      if (expire_clean(key,rlock)) {
+      if (expire_clean(key,key_lock)) {
        return ":0\r\n";
       }
-     const auto &type = lsm->get(get_type_key(key));
-     if (type && type.value() != REDIS_TYPE_SET) {
+     auto type = get_type_cached(key);
+     if (type && *type != REDIS_TYPE_SET) {
        return REDIS_WRONGTYPE;
      }
   // 过期
@@ -1986,13 +1827,13 @@ std::string RedisWrapper::redis_sismember(const std::string &key,
 }
 //集合的元素个数
 std::string RedisWrapper::redis_scard(const std::string &key) {
-      std::shared_lock<std::shared_mutex> rlock(redis_mtx);
+      std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
        //是否有旧的key存在且过期
-      if (expire_clean(key,rlock)) {
+      if (expire_clean(key,key_lock)) {
        return ":0\r\n";
       }
-     const auto &type = lsm->get(get_type_key(key));
-  if (type && type.value() != REDIS_TYPE_SET) {
+     auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_SET) {
     return REDIS_WRONGTYPE;
   }
   // 过期
@@ -2006,15 +1847,15 @@ std::string RedisWrapper::redis_scard(const std::string &key) {
 }
 
 std::string RedisWrapper::redis_smembers(const std::string &key) {
-  std::shared_lock<std::shared_mutex> rlock(redis_mtx);
+  std::shared_lock<std::shared_mutex> key_lock(key_mutex(key));
    //是否有旧的key存在且过期
-      if (expire_clean(key,rlock)) {
+      if (expire_clean(key,key_lock)) {
        return "*0\r\n";
       }
   // 过期
  //  auto key_pre = std::move(get_set_member_prefix(key));
- const auto &type = lsm->get(get_type_key(key));
-  if (type && type.value() != REDIS_TYPE_SET) {
+ auto type = get_type_cached(key);
+  if (type && *type != REDIS_TYPE_SET) {
     return REDIS_WRONGTYPE;
   }
  
@@ -2043,20 +1884,39 @@ std::string RedisWrapper::redis_smembers(const std::string &key) {
       return "*"+std::to_string(count)+"\r\n"+tmp;
   }
   //空的
-   return ":0\r\n";
+   return "*0\r\n";
 }
 //新增
-  std::string RedisWrapper::hset_not_exitst(std::vector<std::string> &args){
-    std::unique_lock<std::shared_mutex> wlock(redis_mtx);
-    if (check_or_create_type_unlocked(args[1],"hash")) {
-         //此时为创建成功或存在
-         if (auto ans=std::move(lsm->get(get_hash_filed_key(args[1],args[2])));
-              !ans) {
-        lsm->put(get_hash_filed_key(args[1],args[2]),args[3]);
-       return ":1\r\n";
+std::string RedisWrapper::hset_not_exitst(std::vector<std::string> &args) {
+  const std::string &key = args[1];
+  const std::string &field = args[2];
+  std::unique_lock key_lock(key_mutex(key));
+  expire_clean_locked(key);
+  if (!check_or_create_type_locked(key, REDIS_TYPE_HASH)) {
+    return ":0\r\n";
+  }
+  load_hash_cache_locked(key);
+
+  int64_t current_size = 0;
+  {
+    std::shared_lock cache_lock(hash_cache_mtx_);
+    const auto &fields = hash_field_cache_.at(key);
+    if (fields.contains(field)) {
+      return ":0\r\n";
     }
-    }
-    //key冲突或者filed冲突
-   return ":0\r\n";
-  } 
+    current_size = hash_size_cache_.at(key);
+  }
+
+  const int64_t new_size = current_size + 1;
+  lsm->put_batch({
+      {get_hash_filed_key(key, field), args[3]},
+      {get_hash_size_key(key), std::to_string(new_size)},
+  });
+  {
+    std::unique_lock cache_lock(hash_cache_mtx_);
+    hash_field_cache_[key].emplace(field);
+    hash_size_cache_[key] = new_size;
+  }
+  return ":1\r\n";
+}
 } // namespace tiny_lsm

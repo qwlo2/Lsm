@@ -1,8 +1,11 @@
 #pragma once
 
 #include "utils/files.h"
-#include "wal/wal.h"
+#include "wal/record.h"
 #include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <map>
 #include <set>
 #include <memory>
@@ -10,6 +13,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace tiny_lsm {
@@ -30,6 +34,8 @@ inline std::string isolation_level_to_string(const IsolationLevel &level);
 
 class LSMEngine;
 class TranManager;
+class WAL;
+struct SharedEntryState;
 
 class TranContext {
   friend class TranManager;
@@ -37,7 +43,7 @@ class TranContext {
 public:
   TranContext(uint64_t tranc_id, std::shared_ptr<LSMEngine> engine,
               std::shared_ptr<TranManager> tranManager,
-              const enum IsolationLevel &isolation_level);
+              const enum IsolationLevel &isolation_level=IsolationLevel::REPEATABLE_READ);
   void put(const std::string &key, const std::string &value);
   void remove(const std::string &key);
   std::optional<std::string> get(const std::string &key);
@@ -59,6 +65,10 @@ public:
   enum IsolationLevel isolation_level_;//隔离级别
 
 private:
+  // RU 事务写入 MemTable 的所有 pending Entry 共享这个状态。
+  // commit/abort 只需修改一次，即可使这些 Entry 整体失效。
+  std::shared_ptr<SharedEntryState> pending_state_;
+
   std::unordered_map<std::string,
                      std::optional<std::pair<std::string, uint64_t>>>
       read_map_;//读缓存
@@ -79,6 +89,10 @@ public:
   std::shared_ptr<TranContext> new_tranc(const IsolationLevel &isolation_level);
 
   uint64_t getNextTransactionId();
+  // 普通读取使用当前可见上界，不额外分配事务 ID。
+  uint64_t getCurrentReadId() const {
+    return nextTransactionId_.load(std::memory_order_acquire);
+  }
   uint64_t get_max_flushed_tranc_id();
   uint64_t get_checkpoint_tranc_id();
   uint64_t get_oldest_active_tranc_id();
@@ -91,6 +105,9 @@ public:
   bool write_to_wal(const std::vector<Record> &records);
 
   std::map<uint64_t, std::vector<Record>> check_recover();
+  std::size_t check_recover(
+      const std::function<void(uint64_t, std::vector<Record> &&)>
+          &recover_callback);
 
   std::string get_tranc_id_file_path();
   void write_tranc_id_file();

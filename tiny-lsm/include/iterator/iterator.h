@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
-#include <optional>
 #include <queue>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace tiny_lsm {
 

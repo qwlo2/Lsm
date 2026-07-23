@@ -1,34 +1,31 @@
 #include "lsm/engine.h"
 #include "block/block_cache.h"
 #include "config/config.h"
-#include "consts.h"
-#include "iterator/iterator.h"
 #include "logger/logger.h"
 #include "lsm/level_iterator.h"
-#include "lsm/two_merge_iterator.h"
-#include "memtable/memtable.h"
+#include "skiplist/skiplist.h"
 #include "spdlog/spdlog.h"
 #include "sst/concact_iterator.h"
 #include "sst/sst.h"
 #include "sst/sst_iterator.h"
+#include "utils/files.h"
 #include "vlog/vlog.h"
 #include "wal/record.h"
 #include <algorithm>
-#include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <functional>
-#include <iostream>
-#include <linux/falloc.h>
+#include <iomanip>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -120,13 +117,14 @@ LSMEngine::~LSMEngine() {
 }
 
 std::optional<std::pair<std::string, uint64_t>>
-LSMEngine::get(const std::string &key, uint64_t tranc_id) {
+LSMEngine::get(const std::string &key, uint64_t tranc_id,
+               ReadVisibility visibility) {
   // TODO: Lab 4.2 查询
   // ? 1. 先查 memtable.get(key, tranc_id), 命中则返回 (value 非空) 或 nullopt
   // (value 为空=删除) ? 2. 加 ssts_mtx 读锁, 遍历 L0 的 sst_ids (越大越新),
   // 通过 sst->get() 查询 ? 3. 遍历 L1 及以上各层, 对每层做二分查找确定 key
   // 所在的 SST 文件 ? 注意: value 为空字符串表示 key 已被删除, 此时返回 nullopt
-  auto mem_result = memtable.get(key, tranc_id);
+  auto mem_result = memtable.get(key, tranc_id, visibility);
   if (mem_result.is_valid()) {
     auto value = mem_result.get_value();
     // 考虑随便抽一个sst，还是加入一个专门用于干这个的sst
@@ -206,13 +204,14 @@ LSMEngine::get(const std::string &key, uint64_t tranc_id) {
 
 std::vector<
     std::pair<std::string, std::optional<std::pair<std::string, uint64_t>>>>
-LSMEngine::get_batch(const std::vector<std::string> &keys, uint64_t tranc_id) {
+LSMEngine::get_batch(const std::vector<std::string> &keys, uint64_t tranc_id,
+                     ReadVisibility visibility) {
   // TODO: Lab 4.2 批量查询
   // ? 1. 先从 memtable 批量查询: memtable.get_batch(keys, tranc_id)
   // ? 2. 若有未命中项, 加读锁后依次查 L0 各 SST 文件
   // ? 3. 若仍有未命中, 对各高层 SST 做二分查找补全结果
   // 找到与未找到
-  auto results = memtable.get_batch(keys, tranc_id);
+  auto results = memtable.get_batch(keys, tranc_id, visibility);
   //  std::all_of(...)   所有都满足
   // std::any_of(...)    至少一个满足
   // std::none_of(...)   一个都不满足
@@ -415,6 +414,10 @@ LSMEngine::tran_vlog_batch(
     }
   }
 
+  if (large.empty()) {
+    return encoded;
+  }
+
   auto offsets = vlog_->append_batch(large);
 
   for (size_t i = 0; i < offsets.size(); ++i) {
@@ -430,7 +433,8 @@ LSMEngine::tran_vlog_batch(
 }
 // 加的检查写冲突的函数
 bool LSMEngine::chech_write(const std::string &key, const uint64_t &tranc_id_) {
-  auto get_mem = memtable.get_(key, 0);
+  auto get_mem =
+      memtable.get_(key, 0, ReadVisibility::INCLUDE_UNCOMMITTED);
   // memtable中找到且冲突
   if (get_mem.is_valid() && get_mem.get_tranc_id() > tranc_id_) {
 
@@ -590,7 +594,9 @@ void LSMEngine::flush_worker() {
       flush_requested_ = false;
     }
    
-       flush_one_frozens();
+    while (!flush_stop_ && memtable.get_frozen_size() > 0) {
+      flush_one_frozens();
+    }
   }
 }
 void LSMEngine::flush_one_frozens() {
@@ -634,11 +640,11 @@ void LSMEngine::flush_one_frozens() {
   auto sst_ptr = memtable.flush_last(*build, sst_path, sst_id,
                                      flushed_tranc_ids, block_cache,flushed_table,watermark);
  
-  if (!sst_ptr) {
-    return ;
+  if (!sst_ptr && !flushed_table) {
+    return;
   }
-   bool need_compact = false;
-  {
+  bool need_compact = false;
+  if (sst_ptr) {
     std::unique_lock<std::shared_mutex> lock(ssts_mtx);
 
     ssts.emplace(sst_id, sst_ptr);
@@ -647,7 +653,9 @@ void LSMEngine::flush_one_frozens() {
     need_compact = level_sst_ids[0].size() >=
         TomlConfig::getInstance().getLsmSstLevelRatio();
   }
-  memtable.remove_flushed_table_(flushed_table);
+  if (flushed_table) {
+    memtable.remove_flushed_table_(flushed_table);
+  }
   // for (auto &id : flushed_tranc_ids) {
   //   tran_manager.lock()->add_flushed_tranc_id(id);
   // }
@@ -1146,35 +1154,46 @@ LSM::LSM(std::string path)
   // 文件准备接收新写入
   engine->set_tran_manager(tran_manager_);
   tran_manager_->set_engine(engine);
-  auto recover_record = std::move(tran_manager_->check_recover());
   // 有问题，flushed_file,在析构在写入，而崩溃时析构不一定有效
-  auto &flushed_txn = tran_manager_->get_flushed_tranc_ids();
-  {
-    std::unique_lock sst_lock(engine->ssts_mtx);
-    std::unique_lock cur_lock(engine->memtable.cur_mtx);
-    std::unique_lock frozen_lock(engine->memtable.frozen_mtx);
-    // wal的txn也要重新put标志
-    for (auto &it : recover_record) {
-      if (flushed_txn.contains(it.first)) {
-        continue; //  already flushed
-      }
-      for (auto &item : it.second) {
-        if (item.getOperationType() == OperationType::OP_PUT) {
-          engine->memtable.put_(item.getKey(), item.getValue(),
-                                item.getTrancId());
-        } else if (item.getOperationType() == OperationType::OP_DELETE) {
-          engine->memtable.remove_(item.getKey(), item.getTrancId());
+  auto flushed_txn = tran_manager_->get_flushed_tranc_ids();
+  tran_manager_->check_recover(
+      [&](uint64_t tranc_id, std::vector<Record> &&records) {
+        if (flushed_txn.contains(tranc_id)) {
+          return;
         }
-      }
-      engine->memtable.put_("", "", it.first);
-      engine->memtable.maybe_frozen_cur_table_();
-      tran_manager_->add_ready_to_flush_tranc_id(
-          it.first, TransactionState::OP_COMMITTED);
-    }
-  }
+
+        bool need_flush = false;
+        {
+          std::unique_lock cur_lock(engine->memtable.cur_mtx);
+          std::unique_lock frozen_lock(engine->memtable.frozen_mtx);
+          for (auto &item : records) {
+            if (item.getOperationType() == OperationType::OP_PUT) {
+              engine->memtable.put_(item.getKey(), item.getValue(), tranc_id);
+            } else if (item.getOperationType() == OperationType::OP_DELETE) {
+              engine->memtable.remove_(item.getKey(), tranc_id);
+            }
+          }
+
+          engine->memtable.put_("", "", tranc_id);
+          if (engine->memtable.current_table->get_size() >=
+              TomlConfig::getInstance().getLsmPerMemSizeLimit()) {
+            engine->memtable.frozen_cur_table_();
+            need_flush = true;
+          }
+        }
+
+        tran_manager_->add_ready_to_flush_tranc_id(
+            tranc_id, TransactionState::OP_COMMITTED);
+        if (need_flush) {
+          engine->flush_one_frozens();
+        }
+      });
 
   // 清理wal，开启新wal
   tran_manager_->init_new_wal();
+  if (engine->memtable.get_frozen_size() > 0) {
+    engine->request_flush();
+  }
 }
 
 LSM::~LSM() {
@@ -1186,7 +1205,7 @@ LSM::~LSM() {
 }
 
 std::optional<std::string> LSM::get(const std::string &key) {
-  auto tranc_id = tran_manager_->getNextTransactionId();
+  auto tranc_id = tran_manager_->getCurrentReadId();
   auto res = engine->get(key, tranc_id);
   // auto res =engine->resolve_value_try(engine->get(key, tranc_id)->first);
   if (res.has_value()) {

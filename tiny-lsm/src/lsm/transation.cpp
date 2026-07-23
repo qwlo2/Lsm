@@ -1,27 +1,24 @@
 #include "config/config.h"
 #include "lsm/engine.h"
 #include "lsm/transaction.h"
-#include "utils/files.h"
 #include "utils/set_operation.h"
 #include "spdlog/spdlog.h"
-
 #include "wal/record.h"
+#include "wal/wal.h"
 #include <algorithm>
-#include <cerrno>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
-#include <ctime>
+#include <exception>
 #include <filesystem>
 #include <memory>
 #include <mutex>
 #include <optional>
-
+#include <stdexcept>
 #include <string>
-
-#include <vector>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 namespace tiny_lsm {
 
 inline std::string isolation_level_to_string(const IsolationLevel &level) {
@@ -43,12 +40,19 @@ inline std::string isolation_level_to_string(const IsolationLevel &level) {
 TranContext::TranContext(uint64_t tranc_id, std::shared_ptr<LSMEngine> engine,
                          std::shared_ptr<TranManager> tranManager,
                          const enum IsolationLevel &isolation_level)
- :tranc_id_(tranc_id),engine_(engine),tranManager_(tranManager),isolation_level_(isolation_level){}
+    : engine_(std::move(engine)), tranManager_(std::move(tranManager)),
+      tranc_id_(tranc_id), isolation_level_(isolation_level),
+      pending_state_(std::make_shared<SharedEntryState>()) {}
 //为了支持事务回滚，在put就把大小值分离
 //ru会直接进入memtable，rc，rr会进入temp——section，存储所有put的kv，为commit做准备
 //都会对当前的key进行一次get，记录当前可见到的最新值，写入operations，wal
 //在rr级别，在读取时会写入read——sectio，做读缓存，实现可重复度读
 void TranContext::put(const std::string &key, const std::string &value) {
+    if (isCommited || isAborted) {
+      spdlog::warn("TranContext--put(): transaction ID={} is already finished",
+                   tranc_id_);
+      return;
+    }
     //vlog,ru进入memtable进行vlog-tran，temp-map存原值，operation存引用
     auto vt=TomlConfig::getInstance().getWisckeyValueThreshold();
     std::string value_;
@@ -64,21 +68,24 @@ void TranContext::put(const std::string &key, const std::string &value) {
            std::unique_lock frozn_lock(engine_->memtable.frozen_mtx);
            //读到的也是vlog处理过的
            
-           auto save=engine_->memtable.get_(key,tranc_id_);
+           auto save=engine_->memtable.get_(
+               key, tranc_id_, ReadVisibility::INCLUDE_UNCOMMITTED);
             if (engine_->chech_write(key,tranc_id_)) {
                   abort();
                   return;
             }  
-            engine_->memtable.put_(key, value_,  tranc_id_);
+            engine_->memtable.put_(key, value_, tranc_id_,
+                                   EntryState::UNCOMMITTED, pending_state_);
            // engine_->memtable.maybe_frozen_cur_table_();
             //roll_back是加入delete
               //RU下这里才记录，rc及以上，只需clear，因为没有实现。savepoint
-              if (save.get_value().empty()) {
+              if (!save.is_valid() || save.get_value().empty()) {
                 rollback_map_.emplace(key,std::nullopt);
               }else {
                 //此时为未删除与删除
                  rollback_map_.emplace(key,std::make_pair(save.get_value(),save.get_tranc_id()));
               }
+              temp_map_[key]=value_;
        }else {
           temp_map_[key]=value_;
           
@@ -88,25 +95,34 @@ void TranContext::put(const std::string &key, const std::string &value) {
 }
 
 void TranContext::remove(const std::string &key) {
+    if (isCommited || isAborted) {
+      spdlog::warn(
+          "TranContext--remove(): transaction ID={} is already finished",
+          tranc_id_);
+      return;
+    }
     // auto save=std::move(engine_->get(key,tranc_id_));
        if (isolation_level_==IsolationLevel::READ_UNOP_COMMITTED) {
              std::unique_lock sst_lock(engine_->ssts_mtx);
            std::unique_lock skip_lock(engine_->memtable.cur_mtx);
            std::unique_lock frozn_lock(engine_->memtable.frozen_mtx);
-         auto save=std::move(engine_->memtable.get_(key,tranc_id_));
+         auto save=engine_->memtable.get_(
+             key, tranc_id_, ReadVisibility::INCLUDE_UNCOMMITTED);
              if (engine_->chech_write(key,tranc_id_)) {
                    abort();
                    return;
              }
-               engine_->memtable.remove_(key,tranc_id_);
+               engine_->memtable.remove_(key, tranc_id_,
+                                         EntryState::UNCOMMITTED, pending_state_);
               //
               //  engine_->memtable.maybe_frozen_cur_table_();
-             if (save.get_value().empty()) {
+             if (!save.is_valid() || save.get_value().empty()) {
                 rollback_map_.emplace(key,std::nullopt);
               }else {
                
                  rollback_map_.emplace(key,std::make_pair(save.get_value(), save.get_tranc_id()));
               }
+             temp_map_[key]="";
        }else {
           temp_map_[key]="";
        }
@@ -115,6 +131,11 @@ void TranContext::remove(const std::string &key) {
 }
 
 std::optional<std::string> TranContext::get(const std::string &key) {
+    if (isCommited || isAborted) {
+      spdlog::warn("TranContext--get(): transaction ID={} is already finished",
+                   tranc_id_);
+      return std::nullopt;
+    }
     if (auto it = temp_map_.find(key);it != temp_map_.end()) {
       //对于rc以上先在tem—map中寻找
       //空字符和remve区分
@@ -139,7 +160,10 @@ std::optional<std::string> TranContext::get(const std::string &key) {
         txn=tranc_id_;
     }
     //get已经resolve
-    auto value=engine_->get(key, txn);
+    auto visibility = isolation_level_ == IsolationLevel::READ_UNOP_COMMITTED
+                          ? ReadVisibility::INCLUDE_UNCOMMITTED
+                          : ReadVisibility::COMMITTED_ONLY;
+    auto value=engine_->get(key, txn, visibility);
     if (isolation_level_==IsolationLevel::REPEATABLE_READ) {
           read_map_[key]=value;
     }
@@ -156,18 +180,23 @@ std::optional<std::string> TranContext::get(const std::string &key) {
 }
 
 bool TranContext::commit(bool test_fail) {
+      if (isCommited) {
+        return true;
+      }
+      if (isAborted) {
+        return false;
+      }
      //std::vector<std::pair<std::string,std::string>> kvs(temp_map_.size());
          std::unique_lock sst_lock(engine_->ssts_mtx);
           std::unique_lock skip_lock(engine_->memtable.cur_mtx);
            std::unique_lock frozn_lock(engine_->memtable.frozen_mtx);
-      if (get_isolation_level()!=IsolationLevel::READ_UNOP_COMMITTED) {
-           //要从memtable和sst分别搜索
-           for (auto& it:temp_map_){
-               if (engine_->chech_write(it.first, tranc_id_)) {
-                     abort();
-                     return false;
-              }
-           }
+      // 所有隔离级别都在提交前按最终写集复检。
+      // RU 在 put/remove 时的检查不能覆盖“最后一次写入到 commit 之间”的冲突窗口。
+      for (auto& it:temp_map_){
+          if (engine_->chech_write(it.first, tranc_id_)) {
+                abort();
+                return false;
+         }
         }
              //0，应该用最大seq
             //   auto get_mem= engine_->memtable.get_(it.first,0);
@@ -222,14 +251,15 @@ bool TranContext::commit(bool test_fail) {
       //test——fail模拟wal写入，但memtable崩溃，WAL能否恢复
        bool need_flush = false;
       if (!test_fail) {
-       if (get_isolation_level()!=IsolationLevel::READ_UNOP_COMMITTED){
-           //写入vlog
-            for (auto& it : temp_map_) {
-                engine_->memtable.put_(it.first, it.second,tranc_id_);
-         }
+       for (auto& it : temp_map_) {
+         engine_->memtable.put_(it.first, it.second, tranc_id_,
+                                EntryState::COMMITTED);
        }
        //put让skiplist个数可以递增
-       engine_->memtable.put_("","",tranc_id_);
+       engine_->memtable.put_("", "", tranc_id_,
+                              EntryState::COMMITTED);
+       pending_state_->state.store(EntryState::UNCOMMITTED_DEAD,
+                                   std::memory_order_release);
        if (engine_->memtable.current_table->get_size() >=
            TomlConfig::getInstance().getLsmPerMemSizeLimit()) {
          engine_->memtable.frozen_cur_table_();
@@ -249,20 +279,16 @@ bool TranContext::commit(bool test_fail) {
 }
 //abort是终止的标志，roll-bakc是执行动作
 bool TranContext::abort() {
+       if (isCommited) {
+         return false;
+       }
+       if (isAborted) {
+         return true;
+       }
+       pending_state_->state.store(EntryState::UNCOMMITTED_DEAD,
+                                   std::memory_order_release);
        read_map_.clear();
        temp_map_.clear();
-       if (isolation_level_==IsolationLevel::READ_UNOP_COMMITTED) {
-          //abort的应用场景都有锁
-                for (auto& [key,op]:rollback_map_) {
-                         if (!op) {
-                           // engine_->put(key,"", tranc_id_);
-                            engine_->memtable.remove_(key, tranc_id_);
-                         }else {
-                         engine_->memtable.put_(key,op->first,tranc_id_);
-                         }
-                }
-            engine_->memtable.maybe_frozen_cur_table_();
-       }
      rollback_map_.clear();
      operations.clear();
       isAborted=true;
@@ -295,7 +321,7 @@ void TranManager::init_new_wal() {
   //   }
   // }
   wal = std::make_shared<WAL>(data_dir_, 128, get_checkpoint_tranc_id(), 1,
-                              4*1024*1024);
+                              32*1024*1024);
   //flushedTrancIds_.clear();
   //flushedTrancIds_.insert(nextTransactionId_.load() - 1);
   spdlog::info("TranManager--init_new_wal(): New WAL initialized");
@@ -536,6 +562,20 @@ std::map<uint64_t, std::vector<Record>> TranManager::check_recover() {
                wal_records.size());
 
   return wal_records;
+}
+
+std::size_t TranManager::check_recover(
+    const std::function<void(uint64_t, std::vector<Record> &&)>
+        &recover_callback) {
+  spdlog::info("TranManager--check_recover(): Starting streaming WAL recovery");
+
+  std::size_t recovered_count =
+      WAL::recover_each(data_dir_, get_checkpoint_tranc_id(),
+                        recover_callback);
+
+  spdlog::info("TranManager--check_recover(): Recovered {} transactions",
+               recovered_count);
+  return recovered_count;
 }
 
 bool TranManager::write_to_wal(const std::vector<Record> &records) {

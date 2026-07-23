@@ -1,24 +1,16 @@
 // src/wal/wal.cpp
 
 #include "wal/wal.h"
-#include "config/config.h"
-#include "spdlog/spdlog.h"
-#include "utils/files.h"
-#include "wal/record.h"
 #include <algorithm>
 #include <chrono>
-#include <clocale>
-#include <condition_variable>
+#include <functional>
 #include <cstdint>
-#include <cstring>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <memory>
 #include <mutex>
+#include <stdexcept>
 #include <string>
 #include <thread>
-#include <unistd.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -79,7 +71,15 @@ WAL::~WAL() {
   // ? 2. 加锁设置 stop_cleaner_ = true
   // ? 3. 等待清理线程结束: cleaner_thread_.join()
   // ? 4. 显式关闭文件: log_file_.close()
-  flush();
+  try {
+    flush();
+  } catch (const std::exception &err) {
+    std::cerr << "WAL flush during destruction failed: " << err.what()
+              << std::endl;
+  } catch (...) {
+    std::cerr << "WAL flush during destruction failed: unknown exception"
+              << std::endl;
+  }
   //此时若不加{}，cleanWALFile()和这里会死锁
   {
     std::unique_lock lock(mutex_);
@@ -88,7 +88,77 @@ WAL::~WAL() {
    if (cleaner_thread_.joinable()) {
        cleaner_thread_.join();
    }
-   log_file_.close();
+   try {
+     log_file_.close();
+   } catch (const std::exception &err) {
+     std::cerr << "WAL close during destruction failed: " << err.what()
+               << std::endl;
+   } catch (...) {
+     std::cerr << "WAL close during destruction failed: unknown exception"
+               << std::endl;
+   }
+}
+
+size_t WAL::recover_each(const std::string &log_dir,
+                         uint64_t checkpoint_tranc_id,
+                         const RecoverCallback &recover_callback) {
+  if (!std::filesystem::exists(log_dir) ||
+      std::filesystem::is_empty(log_dir)) {
+    return 0;
+  }
+
+  std::vector<std::pair<uint64_t, std::string>> wal_seq;
+  for (const auto &entry : std::filesystem::directory_iterator(log_dir)) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+
+    auto filename = entry.path().filename().string();
+    if (filename.rfind("wal.", 0) != 0) {
+      continue;
+    }
+
+    auto seq = std::stoull(filename.substr(4));
+    wal_seq.emplace_back(seq, entry.path().string());
+  }
+
+  std::sort(wal_seq.begin(), wal_seq.end(),
+            [](const auto &lhs, const auto &rhs) {
+              return lhs.first < rhs.first;
+            });
+
+  std::unordered_map<uint64_t, std::vector<Record>> pending;
+  size_t recovered_count = 0;
+
+  for (const auto &wal : wal_seq) {
+    auto file = FileObj::open(wal.second, false);
+    auto decoded = Record::decode(file.read_to_slice(0, file.size()));
+
+    for (auto &record : decoded) {
+      const uint64_t tranc_id = record.getTrancId();
+      if (tranc_id <= checkpoint_tranc_id) {
+        continue;
+      }
+
+      const auto operation = record.getOperationType();
+      if (operation == OperationType::OP_ROLLBACK) {
+        pending.erase(tranc_id);
+        continue;
+      }
+
+      auto &records = pending[tranc_id];
+      records.emplace_back(std::move(record));
+
+      if (operation == OperationType::OP_COMMIT) {
+        auto committed_records = std::move(records);
+        pending.erase(tranc_id);
+        recover_callback(tranc_id, std::move(committed_records));
+        ++recovered_count;
+      }
+    }
+  }
+
+  return recovered_count;
 }
 
 std::map<uint64_t, std::vector<Record>>
@@ -258,7 +328,13 @@ void WAL::cleaner() {
      if (stop_cleaner_) {
         return;
      }
-             cleanWALFile();
+     try {
+       cleanWALFile();
+     } catch (const std::exception &err) {
+       std::cerr << "WAL cleaner failed: " << err.what() << std::endl;
+     } catch (...) {
+       std::cerr << "WAL cleaner failed: unknown exception" << std::endl;
+     }
      
    }
    

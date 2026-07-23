@@ -1,13 +1,12 @@
 #include "utils/std_file.h"
 #include "spdlog/spdlog.h"
-#include <fstream>
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
+#include <stdexcept>
 
-#ifdef _WIN32
-#include <io.h>
-#include <windows.h>
-
-#else
+#ifndef _WIN32
 #include <unistd.h>
 #endif
 

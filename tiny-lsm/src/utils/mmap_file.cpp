@@ -1,10 +1,11 @@
 #ifndef _WIN32
 #include "utils/mmap_file.h"
 #include <cstdint>
-#include <errno.h>
-#include <stdexcept>
-#include <string.h>
+#include <cstring>
+#include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <vector>
 
 namespace tiny_lsm {

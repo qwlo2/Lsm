@@ -1,10 +1,12 @@
 #include "vlog/vlog.h"
-#include "spdlog/spdlog.h"
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
-#include <fstream>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace tiny_lsm {

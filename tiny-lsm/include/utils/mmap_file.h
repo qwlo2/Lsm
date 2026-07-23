@@ -3,10 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <fcntl.h>
 #include <string>
-#include <sys/mman.h>
-#include <unistd.h>
 #include <vector>
 
 namespace tiny_lsm {

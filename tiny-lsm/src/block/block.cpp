@@ -1,23 +1,15 @@
 #include "block/block.h"
 #include "block/block_iterator.h"
-#include "config/config.h"
-#include "redis_wrapper/redis_wrapper.h"
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <functional>
-#include <linux/falloc.h>
 #include <memory>
-#include <netinet/tcp.h>
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <sys/types.h>
 #include <utility>
 #include <vector>
-#include <zconf.h>
-#include <zlib.h>
 namespace tiny_lsm {
 Block::Block(size_t capacity) : capacity(capacity) {}
 

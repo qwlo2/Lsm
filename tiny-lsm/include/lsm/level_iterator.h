@@ -1,8 +1,13 @@
 #pragma once
 #include "iterator/iterator.h"
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <shared_mutex>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace tiny_lsm {
 class LSMEngine;

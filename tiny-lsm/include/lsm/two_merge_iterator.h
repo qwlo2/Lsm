@@ -1,8 +1,8 @@
 #pragma once
 
 #include "iterator/iterator.h"
-#include "sst/sst_iterator.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace tiny_lsm {

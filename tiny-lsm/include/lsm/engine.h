@@ -1,18 +1,26 @@
 #pragma once
 
+#include "iterator/iterator.h"
 #include "memtable/memtable.h"
 #include "sst/sst.h"
-#include "compact.h"
 #include "transaction.h"
 #include "two_merge_iterator.h"
 #include "vlog/vlog.h"
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <condition_variable>
 #include <deque>
+#include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
+#include <optional>
+#include <shared_mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace tiny_lsm {
@@ -64,10 +72,13 @@ public:
   std::string resolve_value_try(const std::string &raw_value) const;
 
   std::optional<std::pair<std::string, uint64_t>> get(const std::string &key,
-                                                      uint64_t tranc_id);
+                                                      uint64_t tranc_id,
+                                                      ReadVisibility visibility =
+                                                          ReadVisibility::COMMITTED_ONLY);
   std::vector<
       std::pair<std::string, std::optional<std::pair<std::string, uint64_t>>>>
-  get_batch(const std::vector<std::string> &keys, uint64_t tranc_id);
+  get_batch(const std::vector<std::string> &keys, uint64_t tranc_id,
+            ReadVisibility visibility = ReadVisibility::COMMITTED_ONLY);
 
   std::optional<std::pair<std::string, uint64_t>>
   sst_get_(const std::string &key, uint64_t tranc_id);

@@ -5,12 +5,9 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <random>
-#include <shared_mutex>
 #include <string>
-#include <sys/types.h>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -77,6 +74,7 @@ public:
   std::string get_key() const;
   std::string get_value() const;
   uint64_t get_tranc_id() const override;
+  EntryState get_effective_state() const;
 
 private:
   std::shared_ptr<SkipListNode> current;
@@ -131,13 +129,17 @@ public:
 
   // 插入或更新键值对
   // 这里不对 tranc_id 进行检查，由上层保证 tranc_id 的合法性
-  void put(const std::string &key, const std::string &value, uint64_t tranc_id);
+  void put(const std::string &key, const std::string &value, uint64_t tranc_id,
+           EntryState state = EntryState::COMMITTED,
+           std::shared_ptr<SharedEntryState> shared_state = nullptr);
 
   // 查找键对应的值
   // 事务 id 为0 表示没有开启事务
   // 否则只能查找事务 id 小于等于 tranc_id 的值
   // 返回值: 如果找到，返回 value 和 tranc_id，否则返回空
-  SkipListIterator get(const std::string &key, uint64_t tranc_id);
+  SkipListIterator
+  get(const std::string &key, uint64_t tranc_id,
+      ReadVisibility visibility = ReadVisibility::COMMITTED_ONLY);
 
   // !!! 这里的 remove 是跳表本身真实的 remove,  lsm 应该使用 put 空值表示删除
   void remove(const std::string &key); // 删除键值对

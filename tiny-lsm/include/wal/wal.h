@@ -5,7 +5,8 @@
 #include "utils/files.h"
 #include "record.h"
 #include <atomic>
-#include <condition_variable>
+#include <functional>
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <mutex>
@@ -17,6 +18,9 @@ namespace tiny_lsm {
 
 class WAL {
 public:
+  using RecoverCallback =
+      std::function<void(uint64_t, std::vector<Record> &&)>;
+
   WAL(const std::string &log_dir, size_t buffer_size,
       uint64_t checkpoint_tranc_id, uint64_t clean_interval,
       uint64_t file_size_limit);
@@ -24,6 +28,10 @@ public:
 
   static std::map<uint64_t, std::vector<Record>>
   recover(const std::string &log_dir, uint64_t checkpoint_tranc_id);
+
+  static size_t recover_each(const std::string &log_dir,
+                             uint64_t checkpoint_tranc_id,
+                             const RecoverCallback &recover_callback);
 
   // 将记录添加到缓冲区
   void log(const std::vector<Record> &records, bool force_flush = false);

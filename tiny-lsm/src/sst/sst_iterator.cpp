@@ -4,10 +4,12 @@
 #include "iterator/iterator.h"
 #include "sst/sst.h"
 #include <cstddef>
-#include <iostream>
+#include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 

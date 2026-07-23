@@ -1,83 +1,99 @@
 #include "block/block_cache.h"
 #include "block/block.h"
-#include "sst/sst.h"
-#include <chrono>
-#include <iterator>
+#include <cstddef>
 #include <list>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
 #include <utility>
 
 namespace tiny_lsm {
 BlockCache::BlockCache(size_t capacity, size_t k)
-    : capacity_(capacity), k_(k) {}
+    : capacity_(capacity), k_(k) {
+  const size_t base_capacity = capacity_ / kShardCount;
+  const size_t remainder = capacity_ % kShardCount;
+  for (size_t i = 0; i < kShardCount; ++i) {
+    shards_[i].capacity = base_capacity + (i < remainder ? 1 : 0);
+  }
+}
 
 BlockCache::~BlockCache() = default;
 
 std::shared_ptr<Block> BlockCache::get(int sst_id, int block_id) {
-     std::unique_lock<std::mutex> lock(mutex_);
-      auto try_find=cache_map_.find(std::make_pair(sst_id, block_id));
-        ++total_requests_;
-      if (try_find!=cache_map_.end()) {
-           update_access_count(try_find->second);
-            ++hit_requests_;
-            return cache_map_.find(std::make_pair(sst_id, block_id))->second->cache_block;
-      }
-      return  nullptr;
-}
+  auto &shard = shards_[shard_index(sst_id, block_id)];
+  std::lock_guard<std::mutex> lock(shard.mutex);
+  auto try_find = shard.cache_map.find(std::make_pair(sst_id, block_id));
+  ++shard.total_requests;
+  if (try_find == shard.cache_map.end()) {
+    return nullptr;
+  }
 
+  auto block = try_find->second->cache_block;
+  update_access_count(shard, try_find->second);
+  ++shard.hit_requests;
+  return block;
+}
 void BlockCache::put(int sst_id, int block_id, std::shared_ptr<Block> block) {
-      std::unique_lock<std::mutex> lock(mutex_);
-       if (auto tmp=cache_map_.find(std::make_pair(sst_id, block_id));tmp!=cache_map_.end()) {
-                return;
-       }
-       if (capacity_<=cache_list_greater_k.size()+cache_list_less_k.size()) {
-              if (cache_list_less_k.size()!=0) {
-                 cache_map_.erase(std::move(std::make_pair(cache_list_less_k.back().sst_id,
-                                 cache_list_less_k.back().block_id)));
-                    cache_list_less_k.pop_back();
-              }else {
-                 cache_map_.erase(std::move(std::make_pair(cache_list_greater_k.back().sst_id,
-                                 cache_list_greater_k.back().block_id)));
-                cache_list_greater_k.pop_back();
-              }
-       }
-       cache_list_less_k.emplace_front(sst_id,block_id,block,0);
-       update_access_count(cache_list_less_k.begin());
-      
-}    
+  auto &shard = shards_[shard_index(sst_id, block_id)];
+  std::lock_guard<std::mutex> lock(shard.mutex);
+  const auto key = std::make_pair(sst_id, block_id);
+
+  if (shard.cache_map.find(key) != shard.cache_map.end() ||
+      shard.capacity == 0) {
+    return;
+  }
+
+  if (shard.cache_map.size() >= shard.capacity) {
+    if (!shard.cache_list_less_k.empty()) {
+      const auto &victim = shard.cache_list_less_k.back();
+      shard.cache_map.erase(std::make_pair(victim.sst_id, victim.block_id));
+      shard.cache_list_less_k.pop_back();
+    } else {
+      const auto &victim = shard.cache_list_greater_k.back();
+      shard.cache_map.erase(std::make_pair(victim.sst_id, victim.block_id));
+      shard.cache_list_greater_k.pop_back();
+    }
+  }
+
+  auto &target_list =
+      k_ <= 1 ? shard.cache_list_greater_k : shard.cache_list_less_k;
+  target_list.emplace_front(sst_id, block_id, std::move(block), 1);
+  shard.cache_map.emplace(key, target_list.begin());
+}
 
 double BlockCache::hit_rate() const {
-     if (!total_requests_||!hit_requests_) {
-         return 0;
-     }
-     return  hit_requests_*1.0/total_requests_;
+  size_t total_requests = 0;
+  size_t hit_requests = 0;
+  for (const auto &shard : shards_) {
+    std::lock_guard<std::mutex> lock(shard.mutex);
+    total_requests += shard.total_requests;
+    hit_requests += shard.hit_requests;
+  }
+
+  if (total_requests == 0) {
+    return 0;
+  }
+  return hit_requests * 1.0 / total_requests;
 }
 
-void BlockCache::update_access_count(std::list<CacheItem>::iterator it) {
-     bool was_greater = it->access_count >= k_;
-     ++it->access_count;
-     auto key=std::make_pair(it->sst_id,it->block_id);
-      auto item = *it;
-        if (it->access_count>=k_) {
-         // --it->access_count>=k_，这个会把值改回去
-            if (was_greater) {
-              cache_list_greater_k.erase(it);
-            }else {
-               cache_list_less_k.erase(it);
-            }
-            // cache_map_.erase(std::move(std::make_pair(it->sst_id,it->block_id)));
-             cache_list_greater_k.emplace_front(item);
-             cache_map_[key]=cache_list_greater_k.begin();
-        }
-        else {
-           cache_list_less_k.erase(it);
-           //cache_map_.erase(std::move(std::make_pair(it->sst_id,it->block_id)));
-           cache_list_less_k.emplace_front(item);
-           cache_map_[key]=cache_list_less_k.begin();
-        }
-          
-        
-} // namespace tiny_lsm
+size_t BlockCache::shard_index(int sst_id, int block_id) const {
+  return pair_hash{}(std::make_pair(sst_id, block_id)) % kShardCount;
 }
+
+void BlockCache::update_access_count(CacheShard &shard,
+                                     CacheList::iterator it) {
+  const bool was_hot = it->access_count >= k_;
+  ++it->access_count;
+
+  if (was_hot) {
+    shard.cache_list_greater_k.splice(shard.cache_list_greater_k.begin(),
+                                      shard.cache_list_greater_k, it);
+  } else if (it->access_count >= k_) {
+    shard.cache_list_greater_k.splice(shard.cache_list_greater_k.begin(),
+                                      shard.cache_list_less_k, it);
+  } else {
+    shard.cache_list_less_k.splice(shard.cache_list_less_k.begin(),
+                                   shard.cache_list_less_k, it);
+  }
+}
+
+} // namespace tiny_lsm

@@ -1,7 +1,6 @@
 #include "lsm/engine.h"
 #include "lsm/level_iterator.h"
 #include <iostream>
-#include <string>
 
 using namespace ::tiny_lsm;
 

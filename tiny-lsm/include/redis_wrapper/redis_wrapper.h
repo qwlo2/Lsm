@@ -1,9 +1,17 @@
 #pragma once
 #include "lsm/engine.h"
+#include <array>
+#include <cstdint>
+#include <functional>
 #include <memory>
+#include <mutex>
+#include <optional>
+#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 namespace tiny_lsm {
 std::vector<std::string>
 get_fileds_from_hash_value(const std::optional<std::string> &field_list_opt);
@@ -21,8 +29,16 @@ inline std::string get_explire_key(const std::string &key);
 
 class RedisWrapper {
 private:
+  static constexpr size_t kKeyLockShardCount = 256;
+
   std::unique_ptr<LSM> lsm;
-  std::shared_mutex redis_mtx;
+  //在const函数可改变mutex状态，或者std::shared_lock中参数为引用，没有const
+  mutable std::array<std::shared_mutex, kKeyLockShardCount> key_lock_shards_;
+  mutable std::shared_mutex type_cache_mtx_;
+  mutable std::shared_mutex hash_cache_mtx_;
+  mutable std::shared_mutex set_cache_mtx_;
+  mutable std::shared_mutex zset_cache_mtx_;
+
   //set内存缓存
   std::unordered_map<std::string, std::string> type_cache_;
   std::unordered_map<std::string, int64_t> set_size_cache_;
@@ -39,34 +55,32 @@ std::unordered_map<std::string, std::unordered_map<std::string,std::string>> zse
 std::unordered_map<std::string, int64_t> zset_size_cache_;
 std::unordered_set<std::string> zset_loaded_ ;
 private:
+  size_t key_lock_index(const std::string &key) const;
+  std::shared_mutex &key_mutex(const std::string &key) const;
+
   // 检查 hash 的 key 是否过期并清理, 过期返回 true
-  //这里都没有判断是否为统一类型，因此里面都套delete_key_unlocked
+  // 读命令传入共享 key 锁，过期时函数内部升级并二次确认。
   //是未了防止第一次碰到已过期的旧类型
   //先expire请理过期旧类型，再判断统一命名空间，再add或get等
   bool expire_clean(const std::string &key,
                          std::shared_lock<std::shared_mutex> &rlock);
-  bool expire_hash_clean(const std::string &key,
-                         std::shared_lock<std::shared_mutex> &rlock);
-
-  bool expire_list_clean(const std::string &key,
-                         std::shared_lock<std::shared_mutex> &rlock);
-  bool expire_zset_clean(const std::string &key,
-                         std::shared_lock<std::shared_mutex> &rlock);
-  bool expire_set_clean(const std::string &key,
-                        std::shared_lock<std::shared_mutex> &rlock);
+  // 写命令调用，要求调用者已经持有该逻辑 key 的独占锁。
+  bool expire_clean_locked(const std::string &key);
 //检查统一空间
-bool check_or_create_type_unlocked(const std::string &key,
-                                                 const std::string &type) ;
+std::optional<std::string> get_type_cached(const std::string &key);
+bool check_or_create_type_locked(const std::string &key,
+                                 const std::string &type) ;
 //判断key是什么类型并删除
-bool delete_key_unlocked(const std::string &key) ;
+bool delete_key_locked(const std::string &key) ;
 //清理单个key缓存
+void erase_key_cache(const std::string& key);
 void erase_key_cache_unlocked(const std::string& key);
 //第一次访问某个 set 时把各种信息加入
-void load_set_cache_unlocked(const std::string& key);
+void load_set_cache_locked(const std::string& key);
 //hash
-void load_hash_cache_unlocked(const std::string& key);
+void load_hash_cache_locked(const std::string& key);
 //zset
-void load_zset_cache_unlocked(const std::string& key) ;
+void load_zset_cache_locked(const std::string& key) ;
 public:
   RedisWrapper(const std::string &db_path);
   void clear();

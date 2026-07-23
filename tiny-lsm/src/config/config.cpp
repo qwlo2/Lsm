@@ -1,5 +1,8 @@
 #include "config/config.h"
 #include "spdlog/spdlog.h"
+#include <cstddef>
+#include <exception>
+#include <fstream>
 #include <iostream>
 #include <toml.hpp>
 
